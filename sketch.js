@@ -304,7 +304,8 @@ for( let i=0;i<pitches.length;i++){
       pitches[i]= scaleToMidi(Math.floor(x))
     },
     min:0,max:12, value:Math.random()*12,
-    size: 1, x: 21.5 + i*fader_spacing, y: 80
+    size: 1, x: 21.5 + i*fader_spacing, y: 80,
+    link: 'seq'+i
     
   }))
 }
