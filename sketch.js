@@ -100,7 +100,7 @@ setNoteOffHandler( (note,vel)=>{
 //hone in the sound design of the vcf envelope and vca envelope
 //really all the different parameters to make it sound like the duo
 
-const gui = new p5( sketch, 'p5-container' )
+const gui = new p5( sketch, 'p5-container-synth' )
 /*
 gui.setTheme('default')
 gui.listThemes() 
@@ -115,7 +115,7 @@ gui.setThemeParameters({
 let distortion_toggle =  gui.Toggle({
   label:'Accent',
   mapto: dist.wet,
-  x: 85, y:10, size: 0.8
+  x: 85, y:30
 })
 distortion_toggle.accentColor = [51,145,219]
 dist.wet.value = 0
@@ -123,7 +123,7 @@ dist.wet.value = 0
 let crusher_toggle =  gui.Toggle({
   label:'bitcrusher',
   mapto: crusher.wet,
-  x: 90, y:25, size: 0.8
+  x: 90, y:70
 })
 crusher_toggle.accentColor = [46,152,99]
 crusher.wet.value = 0
@@ -131,14 +131,14 @@ crusher.wet.value = 0
 let glide_toggle =  gui.Toggle({
   label:'Glide',
   callback: function(){}, //portamento on sequencer side
-  x: 15, y:10, size: 0.8
+  x: 15, y:30
 })
 glide_toggle.accentColor = [51,145,219]
 
 let delay_toggle =  gui.Toggle({
   label:'Delay',
   mapto: delay.wet,
-  x: 10, y:25, size: 0.8
+  x: 10, y:70
 })
 delay_toggle.accentColor = [46,152,99]
 delay.wet.value = 0
@@ -182,7 +182,7 @@ release_fader.set(2.5)
 let resonance_knob = gui.Knob({
   label:'res',
   callback: function(x){ filter.Q.value = x},
-  x: 49.5, y: 43, size:.25,
+  x: 50, y: 84, size:.25,
   min:0.99999, max: 100, curve: 2,
   showValue: false
 })
@@ -192,7 +192,7 @@ resonance_knob.set( 1 )
 let detune_knob = gui.Knob({
   label:'detune',
   mapto: tonePitchshift.factor,
-  x: 22, y: 25, size:.25,
+  x: 22, y: 52, size:.25,
   min:0.99999, max: 3, curve: 1,
   showValue: false
 })
@@ -202,7 +202,7 @@ detune_knob.set( 1 )
 let speaker_knob = gui.Knob({
   label:'gain',
   mapto: masterOut.factor,
-  x: 78, y: 25, size:.25,
+  x: 78, y: 52, size:.25,
   min:0, max: 0.1, curve: 2,
   showValue: false
 })
@@ -224,7 +224,7 @@ let kick_trigger = gui.Button({
   label:'kick',
   callback: function(){ kickPlayer.start()},
   size: 1, border: 20,
-  x:30, y:40, size: 1
+  x:30, y:80
 })
 kick_trigger.accentColor = [20,20,20]
 
@@ -232,13 +232,12 @@ let snare_trigger = gui.Button({
   label:'snare',
   callback: function(){ snarePlayer.start()},
   size: 1, border: 20,
-  x:70, y:40, size: 1
+  x:70, y:80
 })
 snare_trigger.accentColor = [20,20,20]
 
-let lineA = gui.Line(0,50,100,50,{
-  border:4, color: 'black'
-})
+
+let seqgui = new p5(sketch,  'p5-container-seq')
 
 //define our scale, sequence, octave, and index
 let pitches = [60,60,60,60, 60,60,60,60]
@@ -283,18 +282,18 @@ console.log(sequence.get())
 let seq_knobs = []
 let fader_spacing = 8
 for( let i=0;i<pitches.length;i++){
-  seq_knobs.push(gui.Fader({
+  seq_knobs.push(seqgui.Fader({
     label: (i).toString(),showLabel:0,
     callback: function(x){
       pitches[i]= scaleToMidi(Math.floor(x))
     },
     min:0,max:12, value:Math.random()*12,
-    size: 1, x: 21.5 + i*fader_spacing, y: 80
+    size: 1, x: 10 + i*fader_spacing, y: 60
     
   }))
 }
 let isTransportRunning = false
-let toggleButton = gui.Toggle({
+let toggleButton = seqgui.Toggle({
   label:'On/Off',
   callback:
   function toggleTransport() {
@@ -305,43 +304,43 @@ let toggleButton = gui.Toggle({
   }
   isTransportRunning = !isTransportRunning;
 },
-  x: 50, y:70, size: 0.5
+  x: 50, y:20
 })
 
-let tempoKnob = gui.Knob({
+let tempoKnob = seqgui.Knob({
   label: 'Tempo',
   callback: function(x){
     Tone.Transport.bpm.value = x;
   },
-  x: 78, y: 70,
-  min:30, max:250, curve: 1, size: 0.3
+  x: 80, y: 20,
+  min:30, max:250, curve: 1
 })
-let lengthKnob = gui.Knob({
+let lengthKnob = seqgui.Knob({
   label: 'Note Length',
   callback: function(x){ampEnvelope.decay = x
     ampEnvelope.release = x},
   min: 0.1, max: 1, curve: 2, size: 1,
-  x: 22, y: 70, size: 0.3
+  x: 30, y: 20
 })
 
-let transposeAdd = gui.Button({
+let transposeAdd = seqgui.Button({
   label: 'Transpose +',
   callback: function() {
     transpose += 1
   },
-  x: 88, y: 87, size: 0.6
+  x: 80, y: 50
 })
 
-let transposeSubtract = gui.Button({
+let transposeSubtract = seqgui.Button({
   label: 'Transpose -',
   callback: function subtractnote(){
     transpose -= 1
   },
-  x: 12, y: 87, size: 0.6
+  x: 10, y: 50
 })
 
 
-let booster = gui.Toggle({
+let booster = seqgui.Toggle({
   label: 'Boost',
   callback: function boosted(){
   if (isBoost) {
@@ -351,15 +350,15 @@ let booster = gui.Toggle({
   }
   isBoost = !isBoost;
   },
-  x: 70, y: 59, size: 0.8
+  x: 90, y: 70
 })
 
-let rand = gui.Toggle({
+let rand = seqgui.Toggle({
   label: 'Random',
   callback: function(x){
   isRandom = x
   },
-  x: 30, y:59, size: 0.8
+  x: 10, y:20
 })
 isRandom = false
 
