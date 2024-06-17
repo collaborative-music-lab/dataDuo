@@ -176,6 +176,7 @@ let prevYElementSize = 0;
 class Element {
     constructor(p, options) {
         this.p = p;
+        this.ch = window.ch;
         this.theme = activeTheme;
         this.label = options.label || "myElement";
         this.id = this.label;
@@ -238,6 +239,15 @@ class Element {
         this.rawValue = unScaleOutput(options.value,0,1,this.min,this.max,this.curve) || 0.5;
         this.value = options.value || scaleOutput(0.5,0,1,this.min,this.max,this.curve);
         p.elements[this.id] = this;
+
+        //collab-hub sharing values
+        this.linkName = options.link || null; // share params iff linkName is defined
+        if (this.linkName) {
+            this.ch.on(this.linkName, (from) => {      // set listener for updates from collab-hub
+                console.log('received from', from, this.linkName)
+                this.forceSet(this.ch.getControl(this.linkName));
+            })
+        }
 
         this.mapValue(this.value, this.mapto);
         this.runCallBack()
@@ -357,6 +367,24 @@ class Element {
             this.rawValue = unScaleOutput(value,0,1,this.min,this.max,this.curve) || 0.5;
             this.mapValue(this.value, this.mapto);
         }
+
+        // send updates to collab-hub
+        if (this.linkName) { 
+            this.ch.control(this.linkName, this.value);
+        }
+
+        this.runCallBack()
+    }
+
+    forceSet(value){
+        // sets value without sending data to collab-hub
+        if(typeof(value) === 'string') this.value = value;
+        else{
+            this.value = value
+            this.rawValue = unScaleOutput(value,0,1,this.min,this.max,this.curve) || 0.5;
+            this.mapValue(this.value, this.mapto);
+        }
+
         this.runCallBack()
     }
 }
@@ -369,6 +397,11 @@ class Knob extends Element {
         this.degrees = options.degrees || 320;
         this.startAngle = this.p.PI * (4/8 + (360 - this.degrees)/360);
         this.endAngle = this.p.PI * (4/8 - (360 - this.degrees)/360 ) + 2 * this.p.PI;
+
+        // send initial val to collab-hub
+        if (this.linkName) { 
+            this.ch.control(this.linkName, this.value);
+        }
     }
 
     resize(scaleWidth, scaleHeight) {
@@ -435,6 +468,12 @@ class Knob extends Element {
             if( this.rawValue < 0 ) this.rawValue = 0
             this.value = scaleOutput(this.rawValue,0,1,this.min,this.max,this.curve)
             this.mapValue(this.value, this.mapto);
+
+            // send updates to collab-hub
+            if (this.linkName) { 
+                this.ch.control(this.linkName, this.value);
+            }
+
             this.runCallBack()
         }
     }
@@ -458,6 +497,11 @@ class Fader extends Element {
         this.value = this.value || 0.5
         this.dragging = false;
         this.size = options.size || 1
+
+        // send initial val to collab-hub
+        if (this.linkName) { 
+            this.ch.control(this.linkName, this.value);
+        }
     }
 
     resize(scaleWidth, scaleHeight) {
@@ -539,6 +583,11 @@ class Fader extends Element {
             if( this.rawValue < 0 ) this.rawValue = 0
             this.value = scaleOutput(this.rawValue,0,1,this.min,this.max,this.curve)
             this.mapValue(this.value, this.mapto);
+
+            // send updates to collab-hub
+            if (this.linkName) { 
+                this.ch.control(this.linkName, this.value);
+            }
             
             this.runCallBack()
         }
@@ -554,6 +603,13 @@ p5.prototype.Slider = function (options = {}) {
 };
 
 /**************************************** PAD ******************************************/
+
+// NOTE THIS LOOKS BROKEN!!
+// It's the only element that has a custom valueX, valueY thingy
+// var value gets ignored and so the callback doesn't work asa expected
+// maybe represent values of x and y as a string instead??
+// doesn't support collab-hub features as of now for the same reason
+
 class Pad extends Element {
     constructor(p, options) {
         super(p, options);
@@ -569,6 +625,11 @@ class Pad extends Element {
         else this.maptoX = options.maptoX || null;
         if(typeof(options.maptoY)=='string') this.maptoY = eval(options.maptoY)
         else this.maptoY = options.maptoY || null;
+
+        // send initial val to collab-hub
+        // if (this.linkName) { 
+        //     this.ch.control(this.linkName, this.value);
+        // }
     }
 
     resize(scaleWidth, scaleHeight) {
@@ -645,6 +706,12 @@ class Pad extends Element {
             if( this.rawValueY < 0 ) this.rawValueY = 0
             this.valueY = scaleOutput(this.rawValueY,0,1,this.min,this.max,this.curve)
             this.mapValue(this.valueY,this.maptoY);
+
+            // send updates to collab-hub
+            // if (this.linkName) { 
+            //     this.ch.control(this.linkName, this.value);
+            // }
+
             this.runCallBack()
         }
     }
@@ -664,6 +731,11 @@ class Button extends Element {
         super(p, options);
         this.value = options.value || 0
         this.rawValue = this.value
+
+        // send initial val to collab-hub
+        if (this.linkName) { 
+            this.ch.control(this.linkName, this.value);
+        }
     }
 
     resize(scaleWidth, scaleHeight) {
@@ -702,17 +774,52 @@ class Button extends Element {
             this.p.mouseY > (this.cur_y - this.y_box/2) &&
             this.p.mouseY < (this.cur_y + this.y_box/2) )
         {
-            this.active = 1
-            this.rawValue = 1
-            this.value = scaleOutput(this.rawValue,0,1,this.min,this.max,this.curve)
-            this.mapValue(this.value,this.mapto);
-            this.runCallBack();
-            if( this.maptoDefined == 'false') postButtonError('Buttons')
+            if (this.active == 0) {
+                // runs once on press
+
+                this.active = 1
+                this.rawValue = 1
+                this.value = scaleOutput(this.rawValue,0,1,this.min,this.max,this.curve)
+                this.mapValue(this.value,this.mapto);
+
+                // send updates to collab-hub
+                if (this.linkName) { 
+                    this.ch.control(this.linkName, this.value);
+                }
+
+                this.runCallBack();
+                if( this.maptoDefined == 'false') postButtonError('Buttons')
+
+            }
         }
     }
 
     isReleased(){
         if( this.active == 1 )  {
+            // runs once on release
+
+            this.active = 0
+            this.rawValue = 0
+            this.value = scaleOutput(this.rawValue,0,1,this.min,this.max,this.curve)
+
+            // send updates to collab-hub
+            if (this.linkName) { 
+                this.ch.control(this.linkName, this.value);
+            }
+        }
+    }
+
+    forceSet(value){
+        if (value) {
+            this.active = 1
+            this.rawValue = 1
+            this.value = scaleOutput(this.rawValue,0,1,this.min,this.max,this.curve)
+            this.mapValue(this.value,this.mapto);
+
+            this.runCallBack();
+            if( this.maptoDefined == 'false') postButtonError('Buttons')
+
+        } else {
             this.active = 0
             this.rawValue = 0
             this.value = scaleOutput(this.rawValue,0,1,this.min,this.max,this.curve)
@@ -745,6 +852,11 @@ class Toggle extends Button {
     constructor(p, options) {
         super(p, options);
         this.state = options.state || false;
+
+        // send initial val to collab-hub
+        if (this.linkName) { 
+            this.ch.control(this.linkName, this.value);
+        }
     }
 
     isPressed(){
@@ -757,6 +869,12 @@ class Toggle extends Button {
             this.rawValue = this.rawValue ? 0 : 1
             this.value = scaleOutput(this.rawValue,0,1,this.min,this.max,this.curve)
             this.mapValue(this.value,this.mapto);
+
+            // send updates to collab-hub
+            if (this.linkName) { 
+                this.ch.control(this.linkName, this.value);
+            }
+
             this.runCallBack();
             if( this.maptoDefined == 'false') postButtonError('Toggle buttons')
         }
@@ -766,6 +884,15 @@ class Toggle extends Button {
         if( this.active == 1 )  {
             this.active = 0
         }
+    }
+
+    forceSet(value){
+        this.rawValue = value
+        this.value = scaleOutput(this.rawValue,0,1,this.min,this.max,this.curve)
+        this.mapValue(this.value,this.mapto);
+
+        this.runCallBack();
+        if( this.maptoDefined == 'false') postButtonError('Toggle buttons')
     }
 }
 
@@ -784,6 +911,11 @@ class RadioButton extends Button {
         this.radioHeight = this.cur_size / 2;
         this.radioWidth = this.cur_size * 2;
         this.border = options.border ||activeTheme.radioBorder || 2
+
+        // send initial val to collab-hub
+        if (this.linkName) { 
+            this.ch.control(this.linkName, this.value);
+        }
     }
 
     draw() {
@@ -870,6 +1002,11 @@ class RadioButton extends Button {
                 this.value = this.radioOptions[position]
             }
             this.active = 1
+
+            // send updates to collab-hub
+            if (this.linkName) { 
+                this.ch.control(this.linkName, this.value);
+            }
 
             this.runCallBack();
             this.mapValue(this.value, this.mapto);

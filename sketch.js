@@ -100,6 +100,9 @@ setNoteOffHandler( (note,vel)=>{
 //hone in the sound design of the vcf envelope and vca envelope
 //really all the different parameters to make it sound like the duo
 
+// join collab-hub room
+ch.joinRoom('dataduo-21m080');
+
 const gui = new p5( sketch, 'p5-container' )
 /*
 gui.setTheme('default')
@@ -115,7 +118,8 @@ gui.setThemeParameters({
 let distortion_toggle =  gui.Toggle({
   label:'Accent',
   mapto: dist.wet,
-  x: 85, y:10, size: 0.8
+  x: 85, y:10, size: 0.8,
+  link: 'dist'
 })
 distortion_toggle.accentColor = [51,145,219]
 dist.wet.value = 0
@@ -123,7 +127,8 @@ dist.wet.value = 0
 let crusher_toggle =  gui.Toggle({
   label:'bitcrusher',
   mapto: crusher.wet,
-  x: 90, y:25, size: 0.8
+  x: 90, y:25, size: 0.8,
+  link: 'crusher'
 })
 crusher_toggle.accentColor = [46,152,99]
 crusher.wet.value = 0
@@ -131,14 +136,16 @@ crusher.wet.value = 0
 let glide_toggle =  gui.Toggle({
   label:'Glide',
   callback: function(){}, //portamento on sequencer side
-  x: 15, y:10, size: 0.8
+  x: 15, y:10, size: 0.8,
+  link: 'glide'
 })
 glide_toggle.accentColor = [51,145,219]
 
 let delay_toggle =  gui.Toggle({
   label:'Delay',
   mapto: delay.wet,
-  x: 10, y:25, size: 0.8
+  x: 10, y:25, size: 0.8,
+  link: 'delay'
 })
 delay_toggle.accentColor = [46,152,99]
 delay.wet.value = 0
@@ -150,6 +157,7 @@ let wave_fader = gui.Slider({
   min:0, max: 1,
   orientation: 'vertical',
   showValue: false, 
+  link: 'wave'
 })
 wave_fader.accentColor = [247, 5, 5]
 wave_fader.borderColor = [20, 20, 20]
@@ -161,7 +169,8 @@ let freq_fader = gui.Slider({
   x: 49, y: 5, size: 2,
   min:500, max: 2000,
   orientation: 'vertical',
-  showValue: false
+  showValue: false,
+  link: 'freq'
 })
 freq_fader.accentColor = [247, 5, 5]
 freq_fader.borderColor = [20, 20, 20]
@@ -173,7 +182,8 @@ let release_fader = gui.Slider({
   x: 59, y: 5, size: 2,
   min:0, max: 5,
   orientation: 'vertical',
-  showValue: false
+  showValue: false,
+  link: 'release'
 })
 release_fader.accentColor = [247, 5, 5]
 release_fader.borderColor = [20, 20, 20]
@@ -184,7 +194,8 @@ let resonance_knob = gui.Knob({
   callback: function(x){ filter.Q.value = x},
   x: 49.5, y: 43, size:.25,
   min:0.99999, max: 100, curve: 2,
-  showValue: false
+  showValue: false,
+  link: 'res'
 })
 resonance_knob.accentColor = [49,48,55]
 resonance_knob.set( 1 )
@@ -194,7 +205,8 @@ let detune_knob = gui.Knob({
   mapto: tonePitchshift.factor,
   x: 22, y: 25, size:.25,
   min:0.99999, max: 3, curve: 1,
-  showValue: false
+  showValue: false,
+  link: 'detune'
 })
 detune_knob.accentColor = [49,48,55]
 detune_knob.set( 1 )
@@ -204,7 +216,8 @@ let speaker_knob = gui.Knob({
   mapto: masterOut.factor,
   x: 78, y: 25, size:.25,
   min:0, max: 0.1, curve: 2,
-  showValue: false
+  showValue: false,
+  link: 'gain'
 })
 speaker_knob.accentColor = [49,48,55]
 speaker_knob.set( 0.05 )
@@ -224,7 +237,8 @@ let kick_trigger = gui.Button({
   label:'kick',
   callback: function(){ kickPlayer.start()},
   size: 1, border: 20,
-  x:30, y:40, size: 1
+  x:30, y:40, size: 1,
+  link: 'kick'
 })
 kick_trigger.accentColor = [20,20,20]
 
@@ -232,12 +246,13 @@ let snare_trigger = gui.Button({
   label:'snare',
   callback: function(){ snarePlayer.start()},
   size: 1, border: 20,
-  x:70, y:40, size: 1
+  x:70, y:40, size: 1,
+  link: 'snare',
 })
 snare_trigger.accentColor = [20,20,20]
 
 let lineA = gui.Line(0,50,100,50,{
-  border:4, color: 'black'
+  border:4
 })
 
 //define our scale, sequence, octave, and index
@@ -293,19 +308,22 @@ for( let i=0;i<pitches.length;i++){
     
   }))
 }
-let isTransportRunning = false
+let isTransportRunning = true // opposite because will be flipped on initiation callback 
 let toggleButton = gui.Toggle({
   label:'On/Off',
   callback:
   function toggleTransport() {
   if (isTransportRunning) {
     Tone.Transport.stop();
+    console.log('stopped transport')
   } else {
     Tone.Transport.start();
+    console.log('started transport')
   }
   isTransportRunning = !isTransportRunning;
 },
-  x: 50, y:70, size: 0.5
+  x: 50, y:70, size: 0.5,
+  link: 'on-off'
 })
 
 let tempoKnob = gui.Knob({
@@ -314,14 +332,16 @@ let tempoKnob = gui.Knob({
     Tone.Transport.bpm.value = x;
   },
   x: 78, y: 70,
-  min:30, max:250, curve: 1, size: 0.3
+  min:30, max:250, curve: 1, size: 0.3,
+  link: 'tempo'
 })
 let lengthKnob = gui.Knob({
   label: 'Note Length',
   callback: function(x){ampEnvelope.decay = x
     ampEnvelope.release = x},
   min: 0.1, max: 1, curve: 2, size: 1,
-  x: 22, y: 70, size: 0.3
+  x: 22, y: 70, size: 0.3,
+  link: 'note-length'
 })
 
 let transposeAdd = gui.Button({
@@ -329,7 +349,8 @@ let transposeAdd = gui.Button({
   callback: function() {
     transpose += 1
   },
-  x: 88, y: 87, size: 0.6
+  x: 88, y: 87, size: 0.6,
+  link: 'transpose+'
 })
 
 let transposeSubtract = gui.Button({
@@ -337,7 +358,8 @@ let transposeSubtract = gui.Button({
   callback: function subtractnote(){
     transpose -= 1
   },
-  x: 12, y: 87, size: 0.6
+  x: 12, y: 87, size: 0.6,
+  link: 'transpose-'
 })
 
 
@@ -351,7 +373,8 @@ let booster = gui.Toggle({
   }
   isBoost = !isBoost;
   },
-  x: 70, y: 59, size: 0.8
+  x: 70, y: 59, size: 0.8,
+  link: 'boost'
 })
 
 let rand = gui.Toggle({
@@ -359,7 +382,8 @@ let rand = gui.Toggle({
   callback: function(x){
   isRandom = x
   },
-  x: 30, y:59, size: 0.8
+  x: 30, y:59, size: 0.8,
+  link: 'random'
 })
 isRandom = false
 
@@ -367,7 +391,7 @@ isRandom = false
 sequence.start()
 //sequence.stop()
 
-let startEnable = 0
+startEnable = 0
 
 //this start button exists just to enable audio
 //there are probably other ways to call Tone.start(). . . .
@@ -375,8 +399,11 @@ startButton.addEventListener('click', () => {
   if (startEnable == 0) {
     // Start the hihat if it's not already playing
     Tone.start()
+    Tone.Transport.stop();
     console.log('start');
     startEnable = 1
+
+    document.getElementById('startStatus').innerHTML = 'Enabled';
   } else {
     console.log('stop');
     startEnable = 0
