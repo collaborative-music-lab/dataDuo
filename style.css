@@ -16,24 +16,6 @@ main {
 }
 
 #p5-container {
-    display: flex;
-    height: 100vh;
-    width: 100vw;
-    flex-direction: column;
-}
-
-#p5-container-synth {
-    flex:1;
-    border-left: 4px solid black;
-    border-right: 4px solid black;
-    border-top: 4px solid black;
-    border-left: 2px solid black;
-}
-
-#p5-container-seq {
-    flex:1;
-    border-left: 4px solid black;
-    border-right: 4px solid black;
-    border-bottom: 4px solid black;
-    border-top: 2px solid black;
+    height: 100%;
+    width: 100%;
 }
