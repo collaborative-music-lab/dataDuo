@@ -17,7 +17,7 @@
         p.width = div.offsetWidth;
         p.height = div.offsetHeight;
         
-        console.log("init", div.offsetWidth, div.offsetHeight)
+        //console.log("init", div.offsetWidth, div.offsetHeight)
     }
 
     p5.prototype.initialize = function(div) {
@@ -252,7 +252,7 @@ class Element {
             this.p.mouseY < (this.cur_y + this.y_box/2) )
         {
             this.active = 1
-            console.log('pressedas', this.label, this.p.mouseX.toFixed(1), this.p.mouseY.toFixed(1), this.cur_x.toFixed(1), this.cur_y.toFixed(1), this.x_box, this.y_box)
+            //console.log('pressedas', this.label, this.p.mouseX.toFixed(1), this.p.mouseY.toFixed(1), this.cur_x.toFixed(1), this.cur_y.toFixed(1), this.x_box, this.y_box)
         }
     }
 
@@ -697,17 +697,20 @@ class Button extends Element {
     }
 
     isPressed(){
-        if( this.p.mouseX < (this.cur_x + this.x_box/2) &&
-            this.p.mouseX > (this.cur_x - this.x_box/2) &&
-            this.p.mouseY > (this.cur_y - this.y_box/2) &&
-            this.p.mouseY < (this.cur_y + this.y_box/2) )
-        {
-            this.active = 1
-            this.rawValue = 1
-            this.value = scaleOutput(this.rawValue,0,1,this.min,this.max,this.curve)
-            this.mapValue(this.value,this.mapto);
-            this.runCallBack();
-            if( this.maptoDefined == 'false') postButtonError('Buttons')
+        if(this.active == 0){
+            //console.log('button', this.label, this.p.mouseX, this.cur_x , this.x_box)
+            if( this.p.mouseX < (this.cur_x + this.x_box/2) &&
+                this.p.mouseX > (this.cur_x - this.x_box/2) &&
+                this.p.mouseY > (this.cur_y - this.y_box/2) &&
+                this.p.mouseY < (this.cur_y + this.y_box/2) )
+            {
+                this.active = 1
+                this.rawValue = 1
+                this.value = scaleOutput(this.rawValue,0,1,this.min,this.max,this.curve)
+                this.mapValue(this.value,this.mapto);
+                this.runCallBack();
+                if( this.maptoDefined == 'false') postButtonError('Buttons')
+            }
         }
     }
 
@@ -748,21 +751,25 @@ class Toggle extends Button {
     }
 
     isPressed(){
-        if( this.p.mouseX < (this.cur_x + this.x_box/2) &&
-            this.p.mouseX > (this.cur_x - this.x_box/2) &&
-            this.p.mouseY > (this.cur_y - this.y_box/2) &&
-            this.p.mouseY < (this.cur_y + this.y_box/2) )
-        {
-            this.active = 1
-            this.rawValue = this.rawValue ? 0 : 1
-            this.value = scaleOutput(this.rawValue,0,1,this.min,this.max,this.curve)
-            this.mapValue(this.value,this.mapto);
-            this.runCallBack();
-            if( this.maptoDefined == 'false') postButtonError('Toggle buttons')
+        if(this.active == 0){
+            //console.log('toggle', this.label, this.p.mouseX, this.cur_x , this.x_box)
+            if( this.p.mouseX < (this.cur_x + this.x_box/2) &&
+                this.p.mouseX > (this.cur_x - this.x_box/2) &&
+                this.p.mouseY > (this.cur_y - this.y_box/2) &&
+                this.p.mouseY < (this.cur_y + this.y_box/2) )
+            {
+                this.active = 1
+                this.rawValue = this.rawValue ? 0 : 1
+                this.value = scaleOutput(this.rawValue,0,1,this.min,this.max,this.curve)
+                this.mapValue(this.value,this.mapto);
+                this.runCallBack();
+                if( this.maptoDefined == 'false') postButtonError('Toggle buttons')
+            }
         }
     }
 
     isReleased(){
+        //console.log('toggle release', this.label, this.p.mouseX, this.cur_x , this.x_box)
         if( this.active == 1 )  {
             this.active = 0
         }

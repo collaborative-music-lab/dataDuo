@@ -24,7 +24,7 @@ let filter = new Tone.Filter()
 let ampEnvelope = new Tone.Envelope()
 let amp = new Tone.Multiply()
 let dist = new Tone.Distortion(0.9)
-let crusher = new Tone.BitCrusher(2)
+let crusher = new Tone.BitCrusher(16)
 let delay = new Tone.FeedbackDelay()
 let masterOut = new Tone.Multiply(0.05).toDestination()
 
@@ -122,11 +122,12 @@ dist.wet.value = 0
 
 let crusher_toggle =  gui.Toggle({
   label:'bitcrusher',
-  mapto: crusher.wet,
+  mapto: crusher.bits,
+  min:16, max:2,
   x: 90, y:70
 })
 crusher_toggle.accentColor = [46,152,99]
-crusher.wet.value = 0
+crusher.wet.value = 1
 
 let glide_toggle =  gui.Toggle({
   label:'Glide',
