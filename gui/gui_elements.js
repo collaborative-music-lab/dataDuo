@@ -364,7 +364,7 @@ class Element {
         if(typeof(value) === 'string') this.value = value;
         else{
             this.value = value
-            this.rawValue = unScaleOutput(value,0,1,this.min,this.max,this.curve) || 0.5;
+            this.rawValue = unScaleOutput(value,0,1,this.min,this.max,this.curve) || 0.;
             this.mapValue(this.value, this.mapto);
         }
 
@@ -846,6 +846,29 @@ callback: function(val){
     if(name === 'RadioButtons') console.log(`An example of defining a callback for a radio button is: 
 callback: function(val){ vco.type = val }`)
 }
+
+/**************************************** MOMENTARY ******************************************/
+class Momentary extends Button {
+    constructor(p, options) {
+        super(p, options);
+        this.value = options.value || 0
+        this.rawValue = this.value
+    }
+
+    isReleased(){
+        if( this.active == 1 )  {
+            this.active = 0
+            this.rawValue = 0
+            this.value = scaleOutput(this.rawValue,0,1,this.min,this.max,this.curve)
+            this.mapValue(this.value,this.mapto);
+            this.runCallBack();
+        }
+    }
+}
+
+p5.prototype.Momentary = function (options = {}) {
+    return new Momentary(this, options);
+};
 
 /**************************************** TOGGLE ******************************************/
 class Toggle extends Button {

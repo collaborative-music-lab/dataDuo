@@ -17,6 +17,7 @@ class CollabHubClient {
         this.controls = {};
         this.handlers = {};
         this.username = undefined;
+        this.roomJoined = false;
 
         // Setup event listeners
         this.initializeSocketEvents();
@@ -28,7 +29,7 @@ class CollabHubClient {
 
         this.socket.on("connected", () => {
             // TODO server-side, return the username on connection
-            console.info("Connected to Collab-Hub server.");
+            console.info("Connected to Collab-Hub server (Join a room w/ ch.joinRoom(x)!).");
             this.socket.emit();
 
             // TODO HACK sending chat message to receive my user name
@@ -68,14 +69,16 @@ class CollabHubClient {
         // controls
 
         this.socket.on("control", (incoming) => {
-            if (incoming.from !== this.username) {
-                let newHeader = incoming.header,
-                    newValues = incoming.values;
-                this.controls[newHeader] = newValues;
-                if (newHeader in this.handlers) {
-                    this.handlers[newHeader](incoming.from);
+            if (this.roomJoined) {                      // Kind of HACK, ignore controls before joining a room
+                if (incoming.from !== this.username) {  // TODO HACK ignore controls from self
+                    let newHeader = incoming.header,
+                        newValues = incoming.values;
+                    this.controls[newHeader] = newValues;
+                    if (newHeader in this.handlers) {
+                        this.handlers[newHeader](incoming.from);
+                    }
+                    console.log(incoming);
                 }
-                console.log(incoming);
             }
         });
 
@@ -109,12 +112,14 @@ class CollabHubClient {
         // events
 
         this.socket.on("event", (incoming) => {
-            if (incoming.from !== this.username) { // TODO HACK ignore events from self
-                let newHeader = incoming.header;
-                if (newHeader in this.handlers) {
-                    this.handlers[newHeader](incoming.from);
+            if (this.roomJoined) {                      // Kind of HACK, ignore events before joining a room
+                if (incoming.from !== this.username) {  // TODO HACK ignore events from self
+                    let newHeader = incoming.header;
+                    if (newHeader in this.handlers) {
+                        this.handlers[newHeader](incoming.from);
+                    }
+                    console.log("Incoming event", incoming);
                 }
-                console.log("Incoming event", incoming);
             }
         });
 
@@ -218,6 +223,9 @@ class CollabHubClient {
     joinRoom(roomName) {
         let outgoing = { room: roomName };
         this.socket.emit("joinRoom", outgoing);
+
+        this.roomJoined = true;     // room joined, can start receiving controls/events
+        console.info(`Joined room: ${roomName}`);
     }
 
     leaveRoom(roomName) {
