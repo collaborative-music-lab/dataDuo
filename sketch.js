@@ -152,16 +152,58 @@ delay.wet.value = 0
 
 let wave_fader = gui.Slider({
   label:'wave',
-  mapto: pulseWav.width,
+  //mapto: pulseWav.width,
   x: 39, y: 5, size: 2,
   min:0, max: 1,
+  callback: function(x){pulseWav.width.value = stepper(x, 0, 1, [[0,0], [0.4, 0.6], [1,1]])},
   orientation: 'vertical',
-  showValue: false, 
+  //showValue: false, 
   link: 'wave'
 })
 wave_fader.accentColor = [247, 5, 5]
 wave_fader.borderColor = [20, 20, 20]
 wave_fader.set(0.5)
+
+/*
+ * Helper function for creating a custom curve for GUI elements
+ *
+ * input : input of the stepper function
+ * min: minimmum value of the element
+ * max: maximmum value of the element
+ * steps: array of arrays in format [[0,0], [a,b], .... [1,1]] where each point is a step in the curve
+ * 
+ * x values are how much the GUI element is turned
+ * y values are the level the elements are at internally
+*/
+
+function stepper(input, min, max, steps) {
+  let range = max - min
+  let rawval = (input - min) / range
+  const gui_values = []
+  const internal_values = []
+  for (let i = 0; i < steps.length ; i++) {
+    console.log('step', steps[i])
+    gui_values.push(steps[i][0])
+    internal_values.push(steps[i][1])
+  }
+  let index = 0
+  while(index < gui_values.length) {
+    if (rawval < gui_values[index]) {
+      console.log('internalBounds',internal_values[index - 1], internal_values[index])
+      console.log('GUIbounds',gui_values[index - 1], gui_values[index])
+      let slope = (internal_values[index] - internal_values[index - 1])/(gui_values[index] - gui_values[index-1])
+      console.log('rawval' ,rawval)
+      let rawCurved = internal_values[index-1] + slope * (rawval - gui_values[index - 1]) 
+      let realCurved = (rawCurved * range) + min
+      console.log('curved value', realCurved)
+      return realCurved
+    }
+    index++
+  }
+  console.log('max', max)
+  return max
+}
+
 
 let freq_fader = gui.Slider({
   label:'freq',
@@ -169,7 +211,7 @@ let freq_fader = gui.Slider({
   x: 49, y: 5, size: 2,
   min:500, max: 2000,
   orientation: 'vertical',
-  showValue: false,
+  //showValue: false,
   link: 'freq'
 })
 freq_fader.accentColor = [247, 5, 5]
@@ -182,7 +224,7 @@ let release_fader = gui.Slider({
   x: 59, y: 5, size: 2,
   min:0, max: 5,
   orientation: 'vertical',
-  showValue: false,
+  //showValue: false,
   link: 'release'
 })
 release_fader.accentColor = [247, 5, 5]
@@ -194,7 +236,7 @@ let resonance_knob = gui.Knob({
   callback: function(x){ filter.Q.value = x},
   x: 49.5, y: 43, size:.25,
   min:0.99999, max: 100, curve: 2,
-  showValue: false,
+  //showValue: false,
   link: 'res'
 })
 resonance_knob.accentColor = [49,48,55]
@@ -205,7 +247,7 @@ let detune_knob = gui.Knob({
   mapto: tonePitchshift.factor,
   x: 22, y: 25, size:.25,
   min:0.99999, max: 3, curve: 1,
-  showValue: false,
+  //showValue: false,
   link: 'detune'
 })
 detune_knob.accentColor = [49,48,55]
@@ -216,7 +258,7 @@ let speaker_knob = gui.Knob({
   mapto: masterOut.factor,
   x: 78, y: 25, size:.25,
   min:0, max: 0.1, curve: 2,
-  showValue: false,
+  //showValue: false,
   link: 'gain'
 })
 speaker_knob.accentColor = [49,48,55]
