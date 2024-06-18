@@ -17,7 +17,7 @@ class CollabHubClient {
         this.controls = {};
         this.handlers = {};
         this.username = undefined;
-        this.roomJoined = false;
+        this.roomJoined = undefined;
 
         // Setup event listeners
         this.initializeSocketEvents();
@@ -166,37 +166,49 @@ class CollabHubClient {
     // sending data
 
     control(...args) {
-        let mode = args[0] === "publish" || args[0] === "pub" ? "publish" : "push",
-            header = mode === "publish" ? args[1] : args[0],
-            values = mode === "publish" ? args[2] : args[1],
-            target = mode === "publish" ? args[3] ? args[3] : "all" : args[2] ? args[2] : "all";
-        const outgoing = {
-            mode: mode,
-            header: header,
-            values: values,
-            target: target
-        };
-        this.socket.emit("control", outgoing);
+        if (this.roomJoined) {
+            let mode = args[0] === "publish" || args[0] === "pub" ? "publish" : "push",
+                header = mode === "publish" ? args[1] : args[0],
+                values = mode === "publish" ? args[2] : args[1],
+                target = mode === "publish" ? args[3] ? args[3] : this.roomJoined : args[2] ? args[2] : this.roomJoined;
+            const outgoing = {
+                mode: mode,
+                header: header,
+                values: values,
+                target: target
+            };
+            this.socket.emit("control", outgoing);
+        } else {
+            console.info("Join a room to send controls.");
+        }
     }
 
     event(...args) {
-        let mode = args[0] === "publish" || args[0] === "pub" ? "publish" : "push",
-            header = mode === "publish" ? args[1] : args[0],
-            target = mode === "publish" ? args[2] ? args[2] : "all" : args[1] ? args[1] : "all";
-        const outgoing = {
-            mode: mode,
-            header: header,
-            target: target
-        };
-        this.socket.emit("event", outgoing);
+        if (this.roomJoined) {
+            let mode = args[0] === "publish" || args[0] === "pub" ? "publish" : "push",
+                header = mode === "publish" ? args[1] : args[0],
+                target = mode === "publish" ? args[2] ? args[2] : this.roomJoined : args[1] ? args[1] : this.roomJoined;
+            const outgoing = {
+                mode: mode,
+                header: header,
+                target: target
+            };
+            this.socket.emit("event", outgoing);
+        } else {
+            console.info("Join a room to send events.");
+        }
     }
 
     chat(m, t) {
-        const outgoing = {
-            chat: m
-        };
-        t ? outgoing.target = t : outgoing.target = "all";
-        this.socket.emit("chat", outgoing);
+        if (this.roomJoined) {
+            const outgoing = {
+                chat: m
+            };
+            t ? outgoing.target = t : outgoing.target = this.roomJoined;
+            this.socket.emit("chat", outgoing);
+        } else {
+            console.info("Join a room to chat.");
+        }
     }
 
     username(u) {
@@ -221,11 +233,14 @@ class CollabHubClient {
     // room management
 
     joinRoom(roomName) {
+        if (this.roomJoined) {
+            this.leaveRoom(this.roomJoined);
+        }
+
         let outgoing = { room: roomName };
         this.socket.emit("joinRoom", outgoing);
 
-        this.roomJoined = true;     // room joined, can start receiving controls/events
-        console.info(`Joined room: ${roomName}`);
+        this.roomJoined = roomName;     // room joined, can start receiving controls/events
     }
 
     leaveRoom(roomName) {
