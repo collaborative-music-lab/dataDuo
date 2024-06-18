@@ -388,6 +388,18 @@ let rand = gui.Toggle({
 })
 isRandom = false
 
+setCCHandler((midi, value) => 
+  { if (midi < 8){
+    seq_knobs[midi].set(value/10.583333)
+  }
+   else{
+    switch(midi){
+    case 61: transposeSubtract.set(value/127); break;
+    case 62: transposeAdd.set(value/127); break;
+    }
+  }
+  })
+
 //start sequence
 sequence.start()
 //sequence.stop()
