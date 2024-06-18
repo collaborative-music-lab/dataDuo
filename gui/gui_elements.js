@@ -744,7 +744,7 @@ callback: function(val){ vco.type = val }`)
 }
 
 /**************************************** MOMENTARY ******************************************/
-export class Momentary extends Button {
+class Momentary extends Button {
     constructor(p, options) {
         super(p, options);
         this.value = options.value || 0
