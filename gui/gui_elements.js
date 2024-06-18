@@ -743,6 +743,29 @@ callback: function(val){
 callback: function(val){ vco.type = val }`)
 }
 
+/**************************************** MOMENTARY ******************************************/
+export class Momentary extends Button {
+    constructor(p, options) {
+        super(p, options);
+        this.value = options.value || 0
+        this.rawValue = this.value
+    }
+
+    isReleased(){
+        if( this.active == 1 )  {
+            this.active = 0
+            this.rawValue = 0
+            this.value = scaleOutput(this.rawValue,0,1,this.min,this.max,this.curve)
+            this.mapValue(this.value,this.mapto);
+            this.runCallBack();
+        }
+    }
+}
+
+p5.prototype.Momentary = function (options = {}) {
+    return new Momentary(this, options);
+};
+
 /**************************************** TOGGLE ******************************************/
 class Toggle extends Button {
     constructor(p, options) {
@@ -856,7 +879,6 @@ class RadioButton extends Button {
             };
         }
     }
-
 
     isPressed() {
         if( this.p.mouseX < (this.cur_x + this.x_box/2) &&
