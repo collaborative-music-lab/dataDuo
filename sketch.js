@@ -100,9 +100,6 @@ setNoteOffHandler( (note,vel)=>{
 //hone in the sound design of the vcf envelope and vca envelope
 //really all the different parameters to make it sound like the duo
 
-// join collab-hub room
-ch.joinRoom('dataduo-21m080');
-
 const gui = new p5( sketch, 'p5-container' )
 /*
 gui.setTheme('default')
@@ -409,4 +406,11 @@ startButton.addEventListener('click', () => {
     console.log('stop');
     startEnable = 0
   }
+});
+
+joinRoomButton.addEventListener('click', () => {
+  let roomNameEl = document.getElementById('roomName')
+  ch.joinRoom(roomNameEl.value)
+  roomNameEl.placeholder = 'Joined ' + roomNameEl.value
+  roomNameEl.value = ''
 });
