@@ -19,6 +19,10 @@ class CollabHubClient {
         this.username = undefined;
         this.roomJoined = undefined;
 
+        this.controlsHandler = (incoming) => {};
+        this.eventsHandler = (incoming) => {};
+        this.chatHandler = (incoming) => {};
+
         // Setup event listeners
         this.initializeSocketEvents();
     }
@@ -55,6 +59,7 @@ class CollabHubClient {
                 console.info("My user name is: " + incoming.id);
             }
             console.log(`${incoming.id}: "${incoming.chat}"`);
+            this.chatHandler(incoming);
         });
 
         this.socket.on("otherUsers", (incoming) => {
@@ -79,6 +84,8 @@ class CollabHubClient {
                     }
                     console.log(incoming);
                 }
+
+                this.controlsHandler(incoming);
             }
         });
 
@@ -120,6 +127,8 @@ class CollabHubClient {
                     }
                     console.log("Incoming event", incoming);
                 }
+
+                this.eventsHandler(incoming);
             }
         });
 
@@ -162,6 +171,12 @@ class CollabHubClient {
         });
 
     }
+
+    // handlers
+
+    setControlsHandler(f) { this.controlsHandler = f; }
+    setEventsHandler(f) { this.eventsHandler = f; }
+    setChatHandler(f) { this.chatHandler = f; }
 
     // sending data
 
@@ -213,6 +228,7 @@ class CollabHubClient {
 
     username(u) {
         this.socket.emit("addUsername", { username: u });
+        this.username = u;
     }
 
     // requesting/using data
