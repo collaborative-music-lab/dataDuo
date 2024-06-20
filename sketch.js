@@ -8,6 +8,7 @@
 */
 
 let player = 'synth' //synth or seq
+let isGlide = false
 
 let toneSig = new Tone.Signal()
 let tonePitchshift = new Tone.Multiply()
@@ -135,7 +136,7 @@ crusher.wet.value = 0
 
 let glide_toggle =  gui.Toggle({
   label:'Glide',
-  callback: function(){}, //portamento on sequencer side
+  callback: function(x){isGlide = x},
   x: 15, y:10, size: 0.8,
   link: 'glide'
 })
@@ -164,50 +165,9 @@ wave_fader.accentColor = [247, 5, 5]
 wave_fader.borderColor = [20, 20, 20]
 wave_fader.set(0.5)
 
-/*
- * Helper function for creating a custom curve for GUI elements
- *
- * input : input of the stepper function
- * min: minimmum value of the element
- * max: maximmum value of the element
- * steps: array of arrays in format [[0,0], [a,b], .... [1,1]] where each point is a step in the curve
- * 
- * x values are how much the GUI element is turned
- * y values are the level the elements are at internally
-*/
-
-function stepper(input, min, max, steps) {
-  let range = max - min
-  let rawval = (input - min) / range
-  const gui_values = []
-  const internal_values = []
-  for (let i = 0; i < steps.length ; i++) {
-    console.log('step', steps[i])
-    gui_values.push(steps[i][0])
-    internal_values.push(steps[i][1])
-  }
-  let index = 0
-  while(index < gui_values.length) {
-    if (rawval < gui_values[index]) {
-      console.log('internalBounds',internal_values[index - 1], internal_values[index])
-      console.log('GUIbounds',gui_values[index - 1], gui_values[index])
-      let slope = (internal_values[index] - internal_values[index - 1])/(gui_values[index] - gui_values[index-1])
-      console.log('rawval' ,rawval)
-      let rawCurved = internal_values[index-1] + slope * (rawval - gui_values[index - 1]) 
-      let realCurved = (rawCurved * range) + min
-      console.log('curved value', realCurved)
-      return realCurved
-    }
-    index++
-  }
-  console.log('max', max)
-  return max
-}
-
-
 let freq_fader = gui.Slider({
   label:'freq',
-  callback: function(x){ cutoffSig.value = x},
+  callback: function(x){cutoffSig.value = stepper(x, 500, 2000, [[0,0], [0.6, 0.8], [1,1]])},
   x: 49, y: 5, size: 2,
   min:500, max: 2000,
   orientation: 'vertical',
@@ -324,10 +284,12 @@ const sequence = new Tone.Sequence( (time, note) => {
   let pitch = Tone.Midi(pitches[index]+octave*12+transpose).toFrequency()
   toneSig.setValueAtTime(pitch, time);
   if (isRandom){
-  let pitch = Tone.Midi(pitches[Math.floor(Math.random()*8)]+octave*12+transpose).toFrequency()
-  toneSig.setValueAtTime(pitch, time);
+    let pitch = Tone.Midi(pitches[Math.floor(Math.random()*8)]+octave*12+transpose).toFrequency()
+    toneSig.setValueAtTime(pitch, time);
   }
-  //vco.frequency.exponentialRampToValueAtTime(pitch, time+1);
+  if (isGlide) {
+    toneSig.exponentialRampToValueAtTime(pitch, time+1);
+  }
   ampEnvelope.triggerAttackRelease(.1, time); 
   ampEnvelope.triggerAttackRelease(.1, time); 
   //update index
@@ -429,6 +391,42 @@ let rand = gui.Toggle({
   link: 'random'
 })
 isRandom = false
+
+/*
+ * Helper function for creating a custom curve for GUI elements
+ *
+ * input : input of the stepper function
+ * min: minimmum value of the element
+ * max: maximmum value of the element
+ * steps: array of arrays in format [[0,0], [a,b], .... [1,1]] where each point is a step in the curve
+ * 
+ * x values are how much the GUI element is turned
+ * y values are the level the elements are at internally
+*/
+
+function stepper(input, min, max, steps) {
+  let range = max - min
+  let rawval = (input - min) / range
+  const gui_values = []
+  const internal_values = []
+  for (let i = 0; i < steps.length ; i++) {
+    gui_values.push(steps[i][0])
+    internal_values.push(steps[i][1])
+  }
+  let index = 0
+  while(index < gui_values.length) {
+    if (rawval < gui_values[index]) {
+      let slope = (internal_values[index] - internal_values[index - 1])/(gui_values[index] - gui_values[index-1])
+      let rawCurved = internal_values[index-1] + slope * (rawval - gui_values[index - 1]) 
+      let realCurved = (rawCurved * range) + min
+      console.log('input value', input)
+      console.log('curved value', realCurved)
+      return realCurved
+    }
+    index++
+  }
+  return max
+}
 
 //start sequence
 sequence.start()
