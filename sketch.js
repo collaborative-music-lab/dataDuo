@@ -73,41 +73,40 @@ let dist = new Tone.Distortion(0.9)
 let crusher = new Tone.BitCrusher(2)
 let delay = new Tone.FeedbackDelay()
 
-/*
+
 let distgain = new Tone.Multiply(1)
 let crushgain = new Tone.Multiply(1)
 let delaygain = new Tone.Multiply(1)
 let delayFilter = new Tone.Filter()
-let lfo = new Tone.LFO("4n", 400, 4000)
+let lfo = new Tone.LFO("16n", 400, 4000)
 
 let distout = new Tone.Add()
 let crushout = new Tone.Add()
 let delayout = new Tone.Add()
 
-
 //distortion
-amp.connect(distout, 0 , 0)
+amp.connect(distout)
 amp.connect(distgain)
 distgain.connect(dist)
-dist.connect(distout, 0, 1)
+dist.connect(distout)
 
 //bitcrusher
-distout.connect(crushout, 0, 0)
+distout.connect(crushout)
 distout.connect(crushgain)
 crushgain.connect(crusher)
-crusher.connect(crushout, 0, 1)
+crusher.connect(crushout)
 
 //delay
-crushout.connect(delayout, 0, 0)
+crushout.connect(delayout)
 crushout.connect(delaygain)
 delaygain.connect(delayFilter)
 lfo.connect(delayFilter.frequency)
-delayFilter.connect(delayout, 0, 1)
+delayFilter.connect(delayout)
 delayout.connect(masterOut)
-*/
 
-amp.connect(dist)
-dist.connect(crusher)
+
+//amp.connect(dist)
+//dist.connect(crusher)
 crusher.connect(delay)
 delay.connect(masterOut)
 
@@ -425,14 +424,43 @@ function stepper(input, min, max, steps) {
   return max
 }
 
-//MIDI MAPPINGS
+
+//start sequence
+sequence.start()
+//sequence.stop()
+
+startEnable = 0
+
+//this start button exists just to enable audio
+//there are probably other ways to call Tone.start(). . . .
+startButton.addEventListener('click', () => {
+  if (startEnable == 0) {
+    // Start the hihat if it's not already playing
+    Tone.start()
+    Tone.Transport.stop();
+    console.log('start');
+    startEnable = 1
+
+    document.getElementById('startStatus').innerHTML = 'Enabled';
+  } else {
+    console.log('stop');
+    startEnable = 0
+  }
+});
+
+joinRoomButton.addEventListener('click', () => {
+  let roomNameEl = document.getElementById('roomName')
+  ch.joinRoom(roomNameEl.value)
+  roomNameEl.placeholder = 'Joined ' + roomNameEl.value
+  roomNameEl.value = ''
+});
 
 setCCHandler((midi, value) => 
   { console.log(midi, value)
     if (midi < 8){
     seq_knobs[midi].set(value/10.583333)
   }
-   else{
+    else{
     switch(midi){
       case 16: wave_fader.set(value/127); break;
       case 17: if (value/0.0635 > 500){
@@ -493,33 +521,3 @@ setCCHandler((midi, value) =>
     }
   }
 })
-
-//start sequence
-sequence.start()
-//sequence.stop()
-
-startEnable = 0
-
-//this start button exists just to enable audio
-//there are probably other ways to call Tone.start(). . . .
-startButton.addEventListener('click', () => {
-  if (startEnable == 0) {
-    // Start the hihat if it's not already playing
-    Tone.start()
-    Tone.Transport.stop();
-    console.log('start');
-    startEnable = 1
-
-    document.getElementById('startStatus').innerHTML = 'Enabled';
-  } else {
-    console.log('stop');
-    startEnable = 0
-  }
-});
-
-joinRoomButton.addEventListener('click', () => {
-  let roomNameEl = document.getElementById('roomName')
-  ch.joinRoom(roomNameEl.value)
-  roomNameEl.placeholder = 'Joined ' + roomNameEl.value
-  roomNameEl.value = ''
-});
