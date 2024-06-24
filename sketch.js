@@ -150,6 +150,17 @@ let delay_toggle =  gui.Toggle({
 delay_toggle.accentColor = [46,152,99]
 delay.wet.value = 0
 
+let delay_knob = gui.Knob({
+  label:'Delay Control',
+  callback: function(x){},  //TO DOOO make this knob change aspects of the delay
+  x: 10, y: 40, size:0.7,
+  min:0.001, max: 1, curve: 1,
+  //showValue: false,
+  link: 'delayknob'
+})
+delay_knob.accentColor = [49,48,55]
+delay_knob.set( 0.0001 )
+
 let wave_fader = gui.Slider({
   label:'wave',
   //mapto: pulseWav.width,
