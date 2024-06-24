@@ -182,7 +182,7 @@ let release_fader = gui.Slider({
   label:'release',
   callback: function(x){ filterEnvelope.release = x},
   x: 59, y: 5, size: 2,
-  min:0, max: 5,
+  min:0.0001, max: 5,
   orientation: 'vertical',
   //showValue: false,
   link: 'release'
@@ -291,7 +291,9 @@ const sequence = new Tone.Sequence( (time, note) => {
     toneSig.exponentialRampToValueAtTime(pitch, time+1);
   }
   ampEnvelope.triggerAttackRelease(.1, time); 
+  filterEnvelope.triggerAttackRelease(.1, time);
   ampEnvelope.triggerAttackRelease(.1, time); 
+  filterEnvelope.triggerAttackRelease(.1, time);
   //update index
   index = ( index+1 ) % pitches.length
   },
