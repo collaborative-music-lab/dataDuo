@@ -77,44 +77,10 @@ dist.connect(crusher)
 crusher.connect(delay)
 delay.connect(masterOut)
 
-//masterOut.connect(scope.input)
-
-//MIDI integration
-/*
-setNoteOnHandler( (note,vel)=>{
-})
-
-setNoteOffHandler( (note,vel)=>{
-})
-*/
-
-//GUI
-//All the effects start on even when they not supposed to
-
-//implement portamento on the sequencer side
-
-//accent should also increase volume. is there a way to get some make up
-//gain whenever I hit accent
-
-//beatpads don't work when you hit them twice fast
-
-//hone in the sound design of the vcf envelope and vca envelope
-//really all the different parameters to make it sound like the duo
-
 // join collab-hub room
 ch.joinRoom('dataduo-21m080')
 
 const gui = new p5( sketch, 'p5-container' )
-/*
-gui.setTheme('default')
-gui.listThemes() 
-
-gui.setThemeParameters({
-  titleFont: 'Helvetica', 
-  borderColor: [200,200,200]
-  //backgroundColor: [222,220,216]
-})
-*/
 
 let distortion_toggle =  gui.Toggle({
   label:'Accent',
@@ -266,9 +232,6 @@ let transpose = 0
 let isBoost = false
 let isRandom = false
 
-
-
-
 //convert scale degrees to midi notes
 const scaleToMidi = function(degree){
   //if our degree is larger than the length of the scale
@@ -276,8 +239,6 @@ const scaleToMidi = function(degree){
   degree = degree % scale.length
   return scale[degree] + cur_octave * 12
 }
-  
-
 
 const sequence = new Tone.Sequence( (time, note) => {
   //calculate freq for note
