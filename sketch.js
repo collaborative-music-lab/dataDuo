@@ -24,9 +24,6 @@ let filterMultiplier = new Tone.Multiply()
 let filter = new Tone.Filter()
 let ampEnvelope = new Tone.Envelope()
 let amp = new Tone.Multiply()
-let dist = new Tone.Distortion(0.9)
-let crusher = new Tone.BitCrusher(2)
-let delay = new Tone.FeedbackDelay()
 let masterOut = new Tone.Multiply(0.05).toDestination()
 
 //let scope = new Oscilloscope('Canvas3')
@@ -71,6 +68,43 @@ ampEnvelope.sustain = 1
 ampEnvelope.release = 0.9
 
 //effects chain
+
+let dist = new Tone.Distortion(0.9)
+let crusher = new Tone.BitCrusher(2)
+let delay = new Tone.FeedbackDelay()
+
+/*
+let distgain = new Tone.Multiply(1)
+let crushgain = new Tone.Multiply(1)
+let delaygain = new Tone.Multiply(1)
+let delayFilter = new Tone.Filter()
+let lfo = new Tone.LFO("4n", 400, 4000)
+
+let distout = new Tone.Add()
+let crushout = new Tone.Add()
+let delayout = new Tone.Add()
+
+
+//distortion
+amp.connect(distout, 0 , 0)
+amp.connect(distgain)
+distgain.connect(dist)
+dist.connect(distout, 0, 1)
+
+//bitcrusher
+distout.connect(crushout, 0, 0)
+distout.connect(crushgain)
+crushgain.connect(crusher)
+crusher.connect(crushout, 0, 1)
+
+//delay
+crushout.connect(delayout, 0, 0)
+crushout.connect(delaygain)
+delaygain.connect(delayFilter)
+lfo.connect(delayFilter.frequency)
+delayFilter.connect(delayout, 0, 1)
+delayout.connect(masterOut)
+*/
 
 amp.connect(dist)
 dist.connect(crusher)
