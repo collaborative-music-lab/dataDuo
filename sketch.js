@@ -425,17 +425,74 @@ function stepper(input, min, max, steps) {
   return max
 }
 
+//MIDI MAPPINGS
+
 setCCHandler((midi, value) => 
-  { if (midi < 8){
+  { console.log(midi, value)
+    if (midi < 8){
     seq_knobs[midi].set(value/10.583333)
   }
    else{
     switch(midi){
-    case 61: transposeSubtract.set(value/127); break;
-    case 62: transposeAdd.set(value/127); break;
+      case 16: wave_fader.set(value/127); break;
+      case 17: if (value/0.0635 > 500){
+        freq_fader.set(value/0.0635)
+        }
+        else{
+          freq_fader.set(500)
+        }
+        break
+      case 18: release_fader.set(value/25.4); break;
+      case 19: if (value/42.333333 > 1){
+        detune_knob.set(value/42.333333)
+        }
+        else{
+          detune_knob.set(1)
+        }
+        break
+      case 20: if (value/4.23333 > 1){
+        resonance_knob.set(value/4.23333)
+        }
+        else{
+          resonance_knob.set(1)
+        }
+        break
+      case 21: speaker_knob.set(value/1270); break;
+      case 22: if (value/127 > 0.1){
+        lengthKnob. set(value/127)
+        }
+        else{
+          lengthKnob.set(0.1)
+        }
+        break
+      case 23: if (value/0.508 > 30){
+        tempoKnob. set(value/0.508)
+        }
+        else{
+          tempoKnob.set(30)
+        }
+        break
+      case 41: if (value>0){
+        toggleButton.set(toggleButton.value==0)}; break;
+      case 43: if (value>0){
+        rand.set(rand.value == 0)}; break;  
+      case 44: if (value>0){
+        booster.set(booster.value == 0)}; break;
+      case 61: transposeSubtract.set(value/127); break;
+      case 62: transposeAdd.set(value/127); break;
+      case 42: if (value>0){
+        delay_toggle.set(delay_toggle.value==0)}; break;
+      case 45: if (value>0){
+        crusher_toggle.set(crusher_toggle.value==0)}; break;
+      case 60: if (value>0){
+        distortion_toggle.set(distortion_toggle.value==0)}; break;
+      case 46: if (value>0){
+        glide_toggle.set(glide_toggle.value==0)}; break;
+      case 58: kick_trigger.set(value/127); break;
+      case 59: snare_trigger.set(value/127); break;
     }
   }
-  })
+})
 
 //start sequence
 sequence.start()
