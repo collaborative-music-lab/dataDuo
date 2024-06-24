@@ -146,7 +146,7 @@ freq_fader.set(1250)
 
 let release_fader = gui.Slider({
   label:'release',
-  callback: function(x){ filterEnvelope.release = x},
+  callback: function(x){ filterEnvelope.release = stepper(x, 0.0001, 2, [[0,0], [0.8, 0.5], [1,1]])},
   x: 59, y: 5, size: 2,
   min:0.0001, max: 2,
   orientation: 'vertical',
@@ -161,7 +161,7 @@ let resonance_knob = gui.Knob({
   label:'res',
   callback: function(x){ filter.Q.value = x},
   x: 49.5, y: 43, size:.25,
-  min:0.99999, max: 100, curve: 2,
+  min:0.99999, max: 30, curve: 2,
   //showValue: false,
   link: 'res'
 })
@@ -172,7 +172,7 @@ let detune_knob = gui.Knob({
   label:'detune',
   mapto: tonePitchshift.factor,
   x: 22, y: 25, size:.25,
-  min:0.99999, max: 3, curve: 1,
+  min:0.99999, max: 2, curve: 1,
   //showValue: false,
   link: 'detune'
 })
