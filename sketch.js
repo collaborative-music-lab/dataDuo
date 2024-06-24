@@ -52,11 +52,11 @@ filterEnvelope.connect(filterDepth)
 cutoffSig.connect(filter.frequency)
 filterDepth.connect(filter.frequency)
 
-cutoffSig.value = 1000
-filterDepth.factor.value = 1000
-filterEnvelope.attack = 0.2
+cutoffSig.value = 1500
+filterDepth.factor.value = 5000
+filterEnvelope.attack = 0.1
 filterEnvelope.decay = 0.1
-filterEnvelope.sustain = 0.4
+filterEnvelope.sustain = 1
 filterEnvelope.release = 0.2
 filter.rolloff = -24
 filter.Q.value = 1
@@ -65,10 +65,10 @@ filter.Q.value = 1
 filter.connect(amp)
 
 ampEnvelope.connect(amp.factor)
-ampEnvelope.attack = 0.1
+ampEnvelope.attack = 0.3
 ampEnvelope.delay = 0.1
-ampEnvelope.sustain = 0.9
-ampEnvelope.release = 0.1
+ampEnvelope.sustain = 1
+ampEnvelope.release = 0.9
 
 //effects chain
 
@@ -148,14 +148,14 @@ let release_fader = gui.Slider({
   label:'release',
   callback: function(x){ filterEnvelope.release = x},
   x: 59, y: 5, size: 2,
-  min:0.0001, max: 5,
+  min:0.0001, max: 2,
   orientation: 'vertical',
   //showValue: false,
   link: 'release'
 })
 release_fader.accentColor = [247, 5, 5]
 release_fader.borderColor = [20, 20, 20]
-release_fader.set(2.5)
+release_fader.set(1)
 
 let resonance_knob = gui.Knob({
   label:'res',
