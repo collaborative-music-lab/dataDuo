@@ -8,6 +8,7 @@
 */
 
 let player = 'synth' //synth or seq
+let isGlide = false
 
 let toneSig = new Tone.Signal()
 let tonePitchshift = new Tone.Multiply()
@@ -23,9 +24,6 @@ let filterMultiplier = new Tone.Multiply()
 let filter = new Tone.Filter()
 let ampEnvelope = new Tone.Envelope()
 let amp = new Tone.Multiply()
-let dist = new Tone.Distortion(0.9)
-let crusher = new Tone.BitCrusher(2)
-let delay = new Tone.FeedbackDelay()
 let masterOut = new Tone.Multiply(0.05).toDestination()
 
 //let scope = new Oscilloscope('Canvas3')
@@ -51,11 +49,11 @@ filterEnvelope.connect(filterDepth)
 cutoffSig.connect(filter.frequency)
 filterDepth.connect(filter.frequency)
 
-cutoffSig.value = 1000
-filterDepth.factor.value = 1000
-filterEnvelope.attack = 0.2
+cutoffSig.value = 1500
+filterDepth.factor.value = 5000
+filterEnvelope.attack = 0.1
 filterEnvelope.decay = 0.1
-filterEnvelope.sustain = 0.4
+filterEnvelope.sustain = 1
 filterEnvelope.release = 0.2
 filter.rolloff = -24
 filter.Q.value = 1
@@ -64,56 +62,59 @@ filter.Q.value = 1
 filter.connect(amp)
 
 ampEnvelope.connect(amp.factor)
-ampEnvelope.attack = 0.1
+ampEnvelope.attack = 0.3
 ampEnvelope.delay = 0.1
-ampEnvelope.sustain = 0.9
-ampEnvelope.release = 0.1
+ampEnvelope.sustain = 1
+ampEnvelope.release = 0.9
 
 //effects chain
+
+let dist = new Tone.Distortion(0.9)
+let crusher = new Tone.BitCrusher(2)
+let delay = new Tone.FeedbackDelay()
+
+/*
+let distgain = new Tone.Multiply(1)
+let crushgain = new Tone.Multiply(1)
+let delaygain = new Tone.Multiply(1)
+let delayFilter = new Tone.Filter()
+let lfo = new Tone.LFO("4n", 400, 4000)
+
+let distout = new Tone.Add()
+let crushout = new Tone.Add()
+let delayout = new Tone.Add()
+
+
+//distortion
+amp.connect(distout, 0 , 0)
+amp.connect(distgain)
+distgain.connect(dist)
+dist.connect(distout, 0, 1)
+
+//bitcrusher
+distout.connect(crushout, 0, 0)
+distout.connect(crushgain)
+crushgain.connect(crusher)
+crusher.connect(crushout, 0, 1)
+
+//delay
+crushout.connect(delayout, 0, 0)
+crushout.connect(delaygain)
+delaygain.connect(delayFilter)
+lfo.connect(delayFilter.frequency)
+delayFilter.connect(delayout, 0, 1)
+delayout.connect(masterOut)
+*/
 
 amp.connect(dist)
 dist.connect(crusher)
 crusher.connect(delay)
 delay.connect(masterOut)
 
-//masterOut.connect(scope.input)
-
-//MIDI integration
-/*
-setNoteOnHandler( (note,vel)=>{
-})
-
-setNoteOffHandler( (note,vel)=>{
-})
-*/
-
-//GUI
-//All the effects start on even when they not supposed to
-
-//implement portamento on the sequencer side
-
-//accent should also increase volume. is there a way to get some make up
-//gain whenever I hit accent
-
-//beatpads don't work when you hit them twice fast
-
-//hone in the sound design of the vcf envelope and vca envelope
-//really all the different parameters to make it sound like the duo
-
 // join collab-hub room
-ch.joinRoom('dataduo-21m080');
+ch.joinRoom('dataduo-21m080')
 
 const gui = new p5( sketch, 'p5-container' )
-/*
-gui.setTheme('default')
-gui.listThemes() 
-
-gui.setThemeParameters({
-  titleFont: 'Helvetica', 
-  borderColor: [200,200,200]
-  //backgroundColor: [222,220,216]
-})
-*/
 
 let distortion_toggle =  gui.Toggle({
   label:'Accent',
@@ -135,7 +136,7 @@ crusher.wet.value = 0
 
 let glide_toggle =  gui.Toggle({
   label:'Glide',
-  callback: function(){}, //portamento on sequencer side
+  callback: function(x){isGlide = x},
   x: 15, y:10, size: 0.8,
   link: 'glide'
 })
@@ -152,11 +153,12 @@ delay.wet.value = 0
 
 let wave_fader = gui.Slider({
   label:'wave',
-  mapto: pulseWav.width,
+  //mapto: pulseWav.width,
   x: 39, y: 5, size: 2,
   min:0, max: 1,
+  callback: function(x){pulseWav.width.value = stepper(x, 0, 1, [[0,0], [0.4, 0.6], [1,1]])},
   orientation: 'vertical',
-  showValue: false, 
+  //showValue: false, 
   link: 'wave'
 })
 wave_fader.accentColor = [247, 5, 5]
@@ -165,11 +167,11 @@ wave_fader.set(0.5)
 
 let freq_fader = gui.Slider({
   label:'freq',
-  callback: function(x){ cutoffSig.value = x},
+  callback: function(x){cutoffSig.value = stepper(x, 500, 2000, [[0,0], [0.6, 0.8], [1,1]])},
   x: 49, y: 5, size: 2,
   min:500, max: 2000,
   orientation: 'vertical',
-  showValue: false,
+  //showValue: false,
   link: 'freq'
 })
 freq_fader.accentColor = [247, 5, 5]
@@ -178,23 +180,23 @@ freq_fader.set(1250)
 
 let release_fader = gui.Slider({
   label:'release',
-  callback: function(x){ filterEnvelope.release = x},
+  callback: function(x){ filterEnvelope.release = stepper(x, 0.0001, 2, [[0,0], [0.8, 0.5], [1,1]])},
   x: 59, y: 5, size: 2,
-  min:0, max: 5,
+  min:0.0001, max: 2,
   orientation: 'vertical',
-  showValue: false,
+  //showValue: false,
   link: 'release'
 })
 release_fader.accentColor = [247, 5, 5]
 release_fader.borderColor = [20, 20, 20]
-release_fader.set(2.5)
+release_fader.set(1)
 
 let resonance_knob = gui.Knob({
   label:'res',
   callback: function(x){ filter.Q.value = x},
   x: 49.5, y: 43, size:.25,
-  min:0.99999, max: 100, curve: 2,
-  showValue: false,
+  min:0.99999, max: 30, curve: 2,
+  //showValue: false,
   link: 'res'
 })
 resonance_knob.accentColor = [49,48,55]
@@ -204,8 +206,8 @@ let detune_knob = gui.Knob({
   label:'detune',
   mapto: tonePitchshift.factor,
   x: 22, y: 25, size:.25,
-  min:0.99999, max: 3, curve: 1,
-  showValue: false,
+  min:0.99999, max: 2, curve: 1,
+  //showValue: false,
   link: 'detune'
 })
 detune_knob.accentColor = [49,48,55]
@@ -216,7 +218,7 @@ let speaker_knob = gui.Knob({
   mapto: masterOut.factor,
   x: 78, y: 25, size:.25,
   min:0, max: 0.1, curve: 2,
-  showValue: false,
+  //showValue: false,
   link: 'gain'
 })
 speaker_knob.accentColor = [49,48,55]
@@ -264,9 +266,6 @@ let transpose = 0
 let isBoost = false
 let isRandom = false
 
-
-
-
 //convert scale degrees to midi notes
 const scaleToMidi = function(degree){
   //if our degree is larger than the length of the scale
@@ -274,20 +273,22 @@ const scaleToMidi = function(degree){
   degree = degree % scale.length
   return scale[degree] + cur_octave * 12
 }
-  
-
 
 const sequence = new Tone.Sequence( (time, note) => {
   //calculate freq for note
   let pitch = Tone.Midi(pitches[index]+octave*12+transpose).toFrequency()
   toneSig.setValueAtTime(pitch, time);
   if (isRandom){
-  let pitch = Tone.Midi(pitches[Math.floor(Math.random()*8)]+octave*12+transpose).toFrequency()
-  toneSig.setValueAtTime(pitch, time);
+    let pitch = Tone.Midi(pitches[Math.floor(Math.random()*8)]+octave*12+transpose).toFrequency()
+    toneSig.setValueAtTime(pitch, time);
   }
-  //vco.frequency.exponentialRampToValueAtTime(pitch, time+1);
+  if (isGlide) {
+    toneSig.exponentialRampToValueAtTime(pitch, time+1);
+  }
   ampEnvelope.triggerAttackRelease(.1, time); 
+  filterEnvelope.triggerAttackRelease(.1, time);
   ampEnvelope.triggerAttackRelease(.1, time); 
+  filterEnvelope.triggerAttackRelease(.1, time);
   //update index
   index = ( index+1 ) % pitches.length
   },
@@ -388,6 +389,42 @@ let rand = gui.Toggle({
 })
 isRandom = false
 
+/*
+ * Helper function for creating a custom curve for GUI elements
+ *
+ * input : input of the stepper function
+ * min: minimmum value of the element
+ * max: maximmum value of the element
+ * steps: array of arrays in format [[0,0], [a,b], .... [1,1]] where each point is a step in the curve
+ * 
+ * x values are how much the GUI element is turned
+ * y values are the level the elements are at internally
+*/
+
+function stepper(input, min, max, steps) {
+  let range = max - min
+  let rawval = (input - min) / range
+  const gui_values = []
+  const internal_values = []
+  for (let i = 0; i < steps.length ; i++) {
+    gui_values.push(steps[i][0])
+    internal_values.push(steps[i][1])
+  }
+  let index = 0
+  while(index < gui_values.length) {
+    if (rawval < gui_values[index]) {
+      let slope = (internal_values[index] - internal_values[index - 1])/(gui_values[index] - gui_values[index-1])
+      let rawCurved = internal_values[index-1] + slope * (rawval - gui_values[index - 1]) 
+      let realCurved = (rawCurved * range) + min
+      console.log('input value', input)
+      console.log('curved value', realCurved)
+      return realCurved
+    }
+    index++
+  }
+  return max
+}
+
 setCCHandler((midi, value) => 
   { if (midi < 8){
     seq_knobs[midi].set(value/10.583333)
@@ -421,4 +458,11 @@ startButton.addEventListener('click', () => {
     console.log('stop');
     startEnable = 0
   }
+});
+
+joinRoomButton.addEventListener('click', () => {
+  let roomNameEl = document.getElementById('roomName')
+  ch.joinRoom(roomNameEl.value)
+  roomNameEl.placeholder = 'Joined ' + roomNameEl.value
+  roomNameEl.value = ''
 });

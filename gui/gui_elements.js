@@ -364,7 +364,7 @@ class Element {
         if(typeof(value) === 'string') this.value = value;
         else{
             this.value = value
-            this.rawValue = unScaleOutput(value,0,1,this.min,this.max,this.curve) || 0.5;
+            this.rawValue = unScaleOutput(value,0,1,this.min,this.max,this.curve) || 0.;
             this.mapValue(this.value, this.mapto);
         }
 
@@ -848,7 +848,7 @@ callback: function(val){ vco.type = val }`)
 }
 
 /**************************************** MOMENTARY ******************************************/
-export class Momentary extends Button {
+class Momentary extends Button {
     constructor(p, options) {
         super(p, options);
         this.value = options.value || 0
