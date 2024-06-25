@@ -78,7 +78,7 @@ let distgain = new Tone.Multiply(1)
 let crushgain = new Tone.Multiply(1)
 let delaygain = new Tone.Multiply(1)
 let delayFilter = new Tone.Filter()
-let lfo = new Tone.LFO("16n", 400, 4000)
+let lfo = new Tone.LFO("8n", 1000, 4000)
 
 let distout = new Tone.Add()
 let crushout = new Tone.Add()
@@ -99,16 +99,11 @@ crusher.connect(crushout)
 //delay
 crushout.connect(delayout)
 crushout.connect(delaygain)
-delaygain.connect(delayFilter)
+delaygain.connect(delay)
+delay.connect(delayFilter)
 lfo.connect(delayFilter.frequency)
 delayFilter.connect(delayout)
 delayout.connect(masterOut)
-
-
-//amp.connect(dist)
-//dist.connect(crusher)
-crusher.connect(delay)
-delay.connect(masterOut)
 
 // join collab-hub room
 ch.joinRoom('dataduo-21m080')
@@ -140,7 +135,7 @@ let glide_toggle =  gui.Toggle({
   link: 'glide'
 })
 glide_toggle.accentColor = [51,145,219]
-
+/*
 let delay_toggle =  gui.Toggle({
   label:'Delay',
   mapto: delay.wet,
@@ -149,17 +144,25 @@ let delay_toggle =  gui.Toggle({
 })
 delay_toggle.accentColor = [46,152,99]
 delay.wet.value = 0
+*/
 
 let delay_knob = gui.Knob({
   label:'Delay Control',
-  callback: function(x){},  //TO DOOO make this knob change aspects of the delay
-  x: 10, y: 40, size:0.7,
+  callback: function(x){delayControl(x)},  //TO DOOO make this knob change aspects of the delay
+  x: 10, y: 25, size:0.8,
   min:0.001, max: 1, curve: 1,
   //showValue: false,
   link: 'delayknob'
 })
 delay_knob.accentColor = [49,48,55]
 delay_knob.set( 0.0001 )
+
+function delayControl(x) {
+  delay.feedback.value = stepper(x, 0 , 1 , [[0,0], [0.02, 0], [0.8,0.6], [1,1]])
+  delay.wet.value = stepper(x , 0, 1, [[0,0], [0.02, 0], [0.04, 1], [1,1]])
+  delaygain.factor.value = stepper(x , 0, 1, [[0,0], [0.02, 0], [0.04, 0.3], [0.4, 0.5], [1,1]])
+  lfo.amplitude = stepper(x , 0, 1, [[0,0], [0.5, 0], [0.7, 0.5], [1,1]])
+}
 
 let wave_fader = gui.Slider({
   label:'wave',
@@ -293,7 +296,7 @@ const sequence = new Tone.Sequence( (time, note) => {
     toneSig.setValueAtTime(pitch, time);
   }
   if (isGlide) {
-    toneSig.exponentialRampToValueAtTime(pitch, time+1);
+    toneSig.exponentialRampToValueAtTime(pitch, time + 1);
   }
   ampEnvelope.triggerAttackRelease(.1, time); 
   filterEnvelope.triggerAttackRelease(.1, time);
@@ -482,7 +485,7 @@ setCCHandler((midi, value) =>
         }
         break
       case 18: release_fader.set(value/25.4); break;
-      case 19: if (value/42.333333 > 1){
+      case 19: if (value/42.333333 > 1){         //I CHANGED THE RELEASE MIN/MAX
         detune_knob.set(value/42.333333)
         }
         else{
@@ -490,7 +493,7 @@ setCCHandler((midi, value) =>
         }
         break
       case 20: if (value/4.23333 > 1){
-        resonance_knob.set(value/4.23333)
+        resonance_knob.set(value/4.23333)   //I CHANGED THE RESONANCE MIN/MAX
         }
         else{
           resonance_knob.set(1)
