@@ -317,19 +317,19 @@ console.log(sequence.get())
 let seq_knobs = []
 let fader_spacing = 8
 for( let i=0;i<pitches.length;i++){
-  seq_knobs.push(seqgui.Fader({
+  seq_knobs.push(gui.Fader({
     label: (i).toString(),showLabel:0,
     callback: function(x){
       pitches[i]= scaleToMidi(Math.floor(x))
     },
     min:0.01,max:12, value:Math.random()*12,
-    size: 1, x: 20 + i*fader_spacing, y: 50
+    size: 1, x: 20 + i*fader_spacing, y: 77
     
   }))
 }
 let disable_toggles = []
 for( let i=0;i<pitches.length;i++){
-  disable_toggles.push(seqgui.Toggle({
+  disable_toggles.push(gui.Toggle({
     label: "OFF",
     callback: function(){
       if (global_disable[i]) {
@@ -340,7 +340,7 @@ for( let i=0;i<pitches.length;i++){
   }
   global_disable[i] = !global_disable[i];
     },
-    size: .5, x: 20 + i*fader_spacing, y: 90
+    size: .5, x: 20 + i*fader_spacing, y: 95
     
   }))
 }
