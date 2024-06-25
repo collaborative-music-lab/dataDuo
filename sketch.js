@@ -286,8 +286,13 @@ const scaleToMidi = function(degree){
   degree = degree % scale.length
   return scale[degree] + cur_octave * 12
 }
-
+let disable_array = [true, true, true, true, true, true, true, true]
+let global_disable = [true, true, true, true, true, true, true, true]
 const sequence = new Tone.Sequence( (time, note) => {
+  if (!disable_array[index]) {
+    index = ( index+1 )
+    return
+  }
   //calculate freq for note
   let pitch = Tone.Midi(pitches[index]+octave*12+transpose).toFrequency()
   toneSig.setValueAtTime(pitch, time);
@@ -474,6 +479,11 @@ setCCHandler((midi, value) =>
     if (midi < 8){
     seq_knobs[midi].set(value/10.583333)
   }
+    if (63 < midi < 72){
+        if (value>0){
+          disable_toggles[midi-64].set(disable_toggles[midi-64].value == 0)
+    }
+  }
     else{
     switch(midi){
       case 16: wave_fader.set(value/127); break;
@@ -485,15 +495,11 @@ setCCHandler((midi, value) =>
         }
         break
       case 18: release_fader.set(value/25.4); break;
-      case 19: if (value/42.333333 > 1){         //I CHANGED THE RELEASE MIN/MAX
-        detune_knob.set(value/42.333333)
-        }
-        else{
-          detune_knob.set(1)
-        }
-        break
+      case 19:  detune_knob.set(value/63.5)   //I CHANGED THE RELEASE MIN/MAX - knob should be adjusted
+       
+    
       case 20: if (value/4.23333 > 1){
-        resonance_knob.set(value/4.23333)   //I CHANGED THE RESONANCE MIN/MAX
+        resonance_knob.set(value/4.23333)   //I CHANGED THE RESONANCE MIN/MAX - should be fine as is
         }
         else{
           resonance_knob.set(1)
