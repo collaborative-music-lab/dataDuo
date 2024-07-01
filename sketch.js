@@ -246,7 +246,7 @@ kick_trigger.accentColor = [20,20,20]
 
 let snare_trigger = gui.Button({
   label:'snare',
-  callback: function(){ snarePlayer.start()},
+  callback: function(){ snarePlayer.start(); ch.event('snare')},
   size: 1, border: 20,
   x:70, y:40, size: 1,
   link: 'snare',
@@ -457,3 +457,8 @@ joinRoomButton.addEventListener('click', () => {
   roomNameEl.placeholder = 'Joined ' + roomNameEl.value
   roomNameEl.value = ''
 });
+
+
+let lineB = gui.Line(0,100,100,100,{
+  border:4
+})

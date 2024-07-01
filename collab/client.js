@@ -10,6 +10,7 @@ Version v0.1.0 alpha | June 18, 2022
 // Dependency:
 // <script src="https://cdn.socket.io/4.7.5/socket.io.min.js" integrity="sha384-2huaZvOR9iDzHqslqwpR87isEmrfxqyWOF7hr7BY6KG0+hVKLoEXMPUJw3ynWuhO" crossorigin="anonymous"></script>
 
+
 class CollabHubClient {
 
     constructor() {
@@ -19,9 +20,10 @@ class CollabHubClient {
         this.username = undefined;
         this.roomJoined = undefined;
 
-        this.controlsHandler = (incoming) => {};
-        this.eventsHandler = (incoming) => {};
-        this.chatHandler = (incoming) => {};
+        // Callbacks
+        this.controlsCallback = (incoming) => {};
+        this.eventsCallback = (incoming) => {};
+        this.chatCallback = (incoming) => {};
 
         // Setup event listeners
         this.initializeSocketEvents();
@@ -59,7 +61,7 @@ class CollabHubClient {
                 console.info("My user name is: " + incoming.id);
             }
             console.log(`${incoming.id}: "${incoming.chat}"`);
-            this.chatHandler(incoming);
+            this.chatCallback(incoming);
         });
 
         this.socket.on("otherUsers", (incoming) => {
@@ -85,7 +87,7 @@ class CollabHubClient {
                     console.log(incoming);
                 }
 
-                this.controlsHandler(incoming);
+                this.controlsCallback(incoming);
             }
         });
 
@@ -128,7 +130,7 @@ class CollabHubClient {
                     console.log("Incoming event", incoming);
                 }
 
-                this.eventsHandler(incoming);
+                this.eventsCallback(incoming);
             }
         });
 
@@ -172,11 +174,11 @@ class CollabHubClient {
 
     }
 
-    // handlers
+    // callbacks
 
-    setControlsHandler(f) { this.controlsHandler = f; }
-    setEventsHandler(f) { this.eventsHandler = f; }
-    setChatHandler(f) { this.chatHandler = f; }
+    setControlsCallback(f) { this.controlsCallback = f; }
+    setEventsCallback(f) { this.eventsCallback = f; }
+    setChatCallback(f) { this.chatCallback = f; }
 
     // sending data
 
@@ -226,7 +228,7 @@ class CollabHubClient {
         }
     }
 
-    username(u) {
+    setUsername(u) {
         this.socket.emit("addUsername", { username: u });
         this.username = u;
     }
@@ -315,6 +317,82 @@ class CollabHubClient {
         this.socket.emit("clearEvent", outgoing);
         this.socket.emit("getMyEvents");
     }
+  }  
+
+
+  class CollabHubTracker {
+    constructor(collabHubClient) {
+        this.ch = collabHubClient;
+        this.recentControls = {};
+        this.recentEvents = [];
+        this.recentChat = [];
+
+        this.controlsTimeOut = 300000;
+        this.eventsTimeOut = 4000;
+        this.chatTimeOut = 60000;
+        this.chatMaxDisplay = 20;
+
+        // set callbacks
+        this.ch.setControlsCallback(this.handleControl.bind(this));
+        this.ch.setEventsCallback(this.handleEvent.bind(this));
+        this.ch.setChatCallback(this.handleChat.bind(this));
+
+        // start tracking
+        this.update();
+        setInterval(this.update.bind(this), 1000);
+    }
+
+
+    update() {
+        // clean old data
+        for (let key in this.recentControls) {
+            if (Date.now() - this.recentControls[key].time > this.controlsTimeOut) {
+                delete this.recentControls[key];
+            }
+        }
+
+        this.recentEvents.forEach((event, index) => {
+            if (Date.now() - event.time > this.eventsTimeOut) {
+                this.recentEvents.splice(index, 1);
+            }
+        })
+
+        this.recentChat.forEach((message, index) => {
+            if (Date.now() - message.time > this.chatTimeOut) {
+                this.recentChat.splice(index, 1);
+            }
+        })
+    }
+
+    handleChat(incoming) {
+        this.recentChat.push({
+            message: incoming.chat,
+            from: incoming.id,
+        });
+        if (this.recentChat.length > this.chatMaxDisplay) {
+            this.recentChat.shift();
+        }
+        console.log('CHAT: ', this.recentChat);
+    }
+
+    handleControl(incoming) {
+        this.recentControls[incoming.header] = {
+            value: incoming.values,
+            from: incoming.from,
+            time: Date.now()
+        };
+        console.log('CONTROLS: ', this.recentControls);
+    }
+
+    handleEvent(incoming) {
+        this.recentEvents.unshift({
+            header: incoming.header,
+            from: incoming.from,
+            time: Date.now()
+        });
+        console.log('EVENTS: ', this.recentEvents);
+    }
   }
   
-  ch = new CollabHubClient();
+ch = new CollabHubClient();
+chTracker = new CollabHubTracker(ch);
