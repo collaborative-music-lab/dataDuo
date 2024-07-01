@@ -323,8 +323,8 @@ for( let i=0;i<pitches.length;i++){
       pitches[i]= scaleToMidi(Math.floor(x))
     },
     min:0.01,max:12, value:Math.random()*12,
-    size: 1, x: 20 + i*fader_spacing, y: 77
-    
+    size: 1, x: 20 + i*fader_spacing, y: 77,
+    link: 'seq'+i
   }))
 }
 let disable_toggles = []
@@ -384,6 +384,7 @@ let transposeAdd = gui.Button({
   label: 'Transpose +',
   callback: function() {
     transpose += 1
+    ch.controls('transpose', transpose)
   },
   x: 88, y: 87, size: 0.6,
   link: 'transpose+'
@@ -393,10 +394,15 @@ let transposeSubtract = gui.Button({
   label: 'Transpose -',
   callback: function subtractnote(){
     transpose -= 1
+    ch.controls('transpose', transpose)
   },
   x: 12, y: 87, size: 0.6,
-  link: 'transpose-'
 })
+
+// handle collab hub transpose
+ch.on('transpose', (value) => {
+  transpose = value
+});
 
 
 let booster = gui.Toggle({

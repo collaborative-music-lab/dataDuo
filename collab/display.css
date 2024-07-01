@@ -15,6 +15,7 @@
 @media (max-width: 768px) {
   .collab-container {
       flex-direction: column;
+      min-height: 500px;
   }
   .collab-item {
       width: 100%; /* Full width on small screens */
