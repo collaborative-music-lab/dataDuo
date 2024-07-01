@@ -24,9 +24,6 @@ let filterMultiplier = new Tone.Multiply()
 let filter = new Tone.Filter()
 let ampEnvelope = new Tone.Envelope()
 let amp = new Tone.Multiply()
-let dist = new Tone.Distortion(0.9)
-let crusher = new Tone.BitCrusher(2)
-let delay = new Tone.FeedbackDelay()
 let masterOut = new Tone.Multiply(0.05).toDestination()
 
 //let scope = new Oscilloscope('Canvas3')
@@ -52,11 +49,11 @@ filterEnvelope.connect(filterDepth)
 cutoffSig.connect(filter.frequency)
 filterDepth.connect(filter.frequency)
 
-cutoffSig.value = 1000
-filterDepth.factor.value = 1000
-filterEnvelope.attack = 0.2
+cutoffSig.value = 1500
+filterDepth.factor.value = 5000
+filterEnvelope.attack = 0.1
 filterEnvelope.decay = 0.1
-filterEnvelope.sustain = 0.4
+filterEnvelope.sustain = 1
 filterEnvelope.release = 0.2
 filter.rolloff = -24
 filter.Q.value = 1
@@ -65,56 +62,53 @@ filter.Q.value = 1
 filter.connect(amp)
 
 ampEnvelope.connect(amp.factor)
-ampEnvelope.attack = 0.1
+ampEnvelope.attack = 0.3
 ampEnvelope.delay = 0.1
-ampEnvelope.sustain = 0.9
-ampEnvelope.release = 0.1
+ampEnvelope.sustain = 1
+ampEnvelope.release = 0.9
 
 //effects chain
 
-amp.connect(dist)
-dist.connect(crusher)
-crusher.connect(delay)
-delay.connect(masterOut)
+let dist = new Tone.Distortion(0.9)
+let crusher = new Tone.BitCrusher(2)
+let delay = new Tone.FeedbackDelay()
 
-//masterOut.connect(scope.input)
 
-//MIDI integration
-/*
-setNoteOnHandler( (note,vel)=>{
-})
+let distgain = new Tone.Multiply(1)
+let crushgain = new Tone.Multiply(1)
+let delaygain = new Tone.Multiply(1)
+let delayFilter = new Tone.Filter()
+let lfo = new Tone.LFO("8n", 1000, 4000)
 
-setNoteOffHandler( (note,vel)=>{
-})
-*/
+let distout = new Tone.Add()
+let crushout = new Tone.Add()
+let delayout = new Tone.Add()
 
-//GUI
-//All the effects start on even when they not supposed to
+//distortion
+amp.connect(distout)
+amp.connect(distgain)
+distgain.connect(dist)
+dist.connect(distout)
 
-//implement portamento on the sequencer side
+//bitcrusher
+distout.connect(crushout)
+distout.connect(crushgain)
+crushgain.connect(crusher)
+crusher.connect(crushout)
 
-//accent should also increase volume. is there a way to get some make up
-//gain whenever I hit accent
-
-//beatpads don't work when you hit them twice fast
-
-//hone in the sound design of the vcf envelope and vca envelope
-//really all the different parameters to make it sound like the duo
+//delay
+crushout.connect(delayout)
+crushout.connect(delaygain)
+delaygain.connect(delay)
+delay.connect(delayFilter)
+lfo.connect(delayFilter.frequency)
+delayFilter.connect(delayout)
+delayout.connect(masterOut)
 
 // join collab-hub room
 ch.joinRoom('dataduo-21m080')
 
 const gui = new p5( sketch, 'p5-container' )
-/*
-gui.setTheme('default')
-gui.listThemes() 
-
-gui.setThemeParameters({
-  titleFont: 'Helvetica', 
-  borderColor: [200,200,200]
-  //backgroundColor: [222,220,216]
-})
-*/
 
 let distortion_toggle =  gui.Toggle({
   label:'Accent',
@@ -141,7 +135,7 @@ let glide_toggle =  gui.Toggle({
   link: 'glide'
 })
 glide_toggle.accentColor = [51,145,219]
-
+/*
 let delay_toggle =  gui.Toggle({
   label:'Delay',
   mapto: delay.wet,
@@ -150,6 +144,25 @@ let delay_toggle =  gui.Toggle({
 })
 delay_toggle.accentColor = [46,152,99]
 delay.wet.value = 0
+*/
+
+let delay_knob = gui.Knob({
+  label:'Delay Control',
+  callback: function(x){delayControl(x)},  //TO DOOO make this knob change aspects of the delay
+  x: 10, y: 25, size:0.8,
+  min:0.001, max: 1, curve: 1,
+  //showValue: false,
+  link: 'delayknob'
+})
+delay_knob.accentColor = [49,48,55]
+delay_knob.set( 0.0001 )
+
+function delayControl(x) {
+  delay.feedback.value = stepper(x, 0 , 1 , [[0,0], [0.02, 0], [0.8,0.6], [1,1]])
+  delay.wet.value = stepper(x , 0, 1, [[0,0], [0.02, 0], [0.04, 1], [1,1]])
+  delaygain.factor.value = stepper(x , 0, 1, [[0,0], [0.02, 0], [0.04, 0.3], [0.4, 0.5], [1,1]])
+  lfo.amplitude = stepper(x , 0, 1, [[0,0], [0.5, 0], [0.7, 0.5], [1,1]])
+}
 
 let wave_fader = gui.Slider({
   label:'wave',
@@ -180,22 +193,22 @@ freq_fader.set(1250)
 
 let release_fader = gui.Slider({
   label:'release',
-  callback: function(x){ filterEnvelope.release = x},
+  callback: function(x){ filterEnvelope.release = stepper(x, 0.0001, 2, [[0,0], [0.8, 0.5], [1,1]])},
   x: 59, y: 5, size: 2,
-  min:0, max: 5,
+  min:0.0001, max: 2,
   orientation: 'vertical',
   //showValue: false,
   link: 'release'
 })
 release_fader.accentColor = [247, 5, 5]
 release_fader.borderColor = [20, 20, 20]
-release_fader.set(2.5)
+release_fader.set(1)
 
 let resonance_knob = gui.Knob({
   label:'res',
   callback: function(x){ filter.Q.value = x},
   x: 49.5, y: 43, size:.25,
-  min:0.99999, max: 100, curve: 2,
+  min:0.99999, max: 30, curve: 2,
   //showValue: false,
   link: 'res'
 })
@@ -206,7 +219,7 @@ let detune_knob = gui.Knob({
   label:'detune',
   mapto: tonePitchshift.factor,
   x: 22, y: 25, size:.25,
-  min:0.99999, max: 3, curve: 1,
+  min:0.99999, max: 2, curve: 1,
   //showValue: false,
   link: 'detune'
 })
@@ -266,9 +279,6 @@ let transpose = 0
 let isBoost = false
 let isRandom = false
 
-
-
-
 //convert scale degrees to midi notes
 const scaleToMidi = function(degree){
   //if our degree is larger than the length of the scale
@@ -276,10 +286,13 @@ const scaleToMidi = function(degree){
   degree = degree % scale.length
   return scale[degree] + cur_octave * 12
 }
-  
-
-
+let disable_array = [true, true, true, true, true, true, true, true]
+let global_disable = [true, true, true, true, true, true, true, true]
 const sequence = new Tone.Sequence( (time, note) => {
+  if (!disable_array[index]) {
+    index = ( index+1 )
+    return
+  }
   //calculate freq for note
   let pitch = Tone.Midi(pitches[index]+octave*12+transpose).toFrequency()
   toneSig.setValueAtTime(pitch, time);
@@ -288,10 +301,12 @@ const sequence = new Tone.Sequence( (time, note) => {
     toneSig.setValueAtTime(pitch, time);
   }
   if (isGlide) {
-    toneSig.exponentialRampToValueAtTime(pitch, time+1);
+    toneSig.exponentialRampToValueAtTime(pitch, time + 1);
   }
   ampEnvelope.triggerAttackRelease(.1, time); 
+  filterEnvelope.triggerAttackRelease(.1, time);
   ampEnvelope.triggerAttackRelease(.1, time); 
+  filterEnvelope.triggerAttackRelease(.1, time);
   //update index
   index = ( index+1 ) % pitches.length
   },
@@ -307,9 +322,25 @@ for( let i=0;i<pitches.length;i++){
     callback: function(x){
       pitches[i]= scaleToMidi(Math.floor(x))
     },
-    min:0,max:12, value:Math.random()*12,
-    size: 1, x: 21.5 + i*fader_spacing, y: 80,
-    link: 'seq'+i
+    min:0.01,max:12, value:Math.random()*12,
+    size: 1, x: 20 + i*fader_spacing, y: 77
+    
+  }))
+}
+let disable_toggles = []
+for( let i=0;i<pitches.length;i++){
+  disable_toggles.push(gui.Toggle({
+    label: "OFF",
+    callback: function(){
+      if (global_disable[i]) {
+    disable_array[i] = true;
+  } 
+    else {
+    disable_array[i] = false;
+  }
+  global_disable[i] = !global_disable[i];
+    },
+    size: .5, x: 20 + i*fader_spacing, y: 95
     
   }))
 }
@@ -428,6 +459,7 @@ function stepper(input, min, max, steps) {
   return max
 }
 
+
 //start sequence
 sequence.start()
 //sequence.stop()
@@ -457,6 +489,75 @@ joinRoomButton.addEventListener('click', () => {
   roomNameEl.placeholder = 'Joined ' + roomNameEl.value
   roomNameEl.value = ''
 });
+
+setCCHandler((midi, value) => 
+  { console.log(midi, value)
+    if (midi < 8){
+    seq_knobs[midi].set(value/10.583333)
+  }
+    if (63 < midi < 72){
+        if (value>0){
+          disable_toggles[midi-64].set(disable_toggles[midi-64].value == 0)
+    }
+  }
+    else{
+    switch(midi){
+      case 16: wave_fader.set(value/127); break;
+      case 17: if (value/0.0635 > 500){
+        freq_fader.set(value/0.0635)
+        }
+        else{
+          freq_fader.set(500)
+        }
+        break
+      case 18: release_fader.set(value/25.4); break;
+      case 19:  detune_knob.set(value/63.5)   //I CHANGED THE RELEASE MIN/MAX - knob should be adjusted
+       
+    
+      case 20: if (value/4.23333 > 1){
+        resonance_knob.set(value/4.23333)   //I CHANGED THE RESONANCE MIN/MAX - should be fine as is
+        }
+        else{
+          resonance_knob.set(1)
+        }
+        break
+      case 21: speaker_knob.set(value/1270); break;
+      case 22: if (value/127 > 0.1){
+        lengthKnob. set(value/127)
+        }
+        else{
+          lengthKnob.set(0.1)
+        }
+        break
+      case 23: if (value/0.508 > 30){
+        tempoKnob. set(value/0.508)
+        }
+        else{
+          tempoKnob.set(30)
+        }
+        break
+      case 41: if (value>0){
+        toggleButton.set(toggleButton.value==0)}; break;
+      case 43: if (value>0){
+        rand.set(rand.value == 0)}; break;  
+      case 44: if (value>0){
+        booster.set(booster.value == 0)}; break;
+      case 61: transposeSubtract.set(value/127); break;
+      case 62: transposeAdd.set(value/127); break;
+      case 42: if (value>0){
+        delay_toggle.set(delay_toggle.value==0)}; break;
+      case 45: if (value>0){
+        crusher_toggle.set(crusher_toggle.value==0)}; break;
+      case 60: if (value>0){
+        distortion_toggle.set(distortion_toggle.value==0)}; break;
+      case 46: if (value>0){
+        glide_toggle.set(glide_toggle.value==0)}; break;
+      case 58: kick_trigger.set(value/127); break;
+      case 59: snare_trigger.set(value/127); break;
+    }
+  }
+})
+
 
 
 let lineB = gui.Line(0,100,100,100,{
