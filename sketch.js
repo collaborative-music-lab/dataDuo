@@ -78,7 +78,7 @@ let distgain = new Tone.Multiply(1)
 let crushgain = new Tone.Multiply(1)
 let delaygain = new Tone.Multiply(1)
 let delayFilter = new Tone.Filter()
-let lfo = new Tone.LFO("8n", 1000, 4000)
+let lfo = new Tone.LFO("8n", 500, 2000)
 
 let distout = new Tone.Add()
 let crushout = new Tone.Add()
@@ -151,7 +151,7 @@ let delay_knob = gui.Knob({
   callback: function(x){delayControl(x)},  //TO DOOO make this knob change aspects of the delay
   x: 10, y: 25, size:0.8,
   min:0.001, max: 1, curve: 1,
-  //showValue: false,
+  showValue: false,
   link: 'delayknob'
 })
 delay_knob.accentColor = [49,48,55]
@@ -171,7 +171,7 @@ let wave_fader = gui.Slider({
   min:0, max: 1,
   callback: function(x){pulseWav.width.value = stepper(x, 0, 1, [[0,0], [0.4, 0.6], [1,1]])},
   orientation: 'vertical',
-  //showValue: false, 
+  showValue: false, 
   link: 'wave'
 })
 wave_fader.accentColor = [247, 5, 5]
@@ -180,36 +180,36 @@ wave_fader.set(0.5)
 
 let freq_fader = gui.Slider({
   label:'freq',
-  callback: function(x){cutoffSig.value = stepper(x, 500, 2000, [[0,0], [0.6, 0.8], [1,1]])},
+  callback: function(x){cutoffSig.value = stepper(x, 200, 1200, [[0,0], [0.6, 0.8], [1,1]])},
   x: 49, y: 5, size: 2,
-  min:500, max: 2000,
+  min:200, max: 1200,
   orientation: 'vertical',
-  //showValue: false,
+  showValue: false,
   link: 'freq'
 })
 freq_fader.accentColor = [247, 5, 5]
 freq_fader.borderColor = [20, 20, 20]
-freq_fader.set(1250)
+freq_fader.set(700)
 
 let release_fader = gui.Slider({
   label:'release',
-  callback: function(x){ filterEnvelope.release = stepper(x, 0.0001, 2, [[0,0], [0.8, 0.5], [1,1]])},
+  callback: function(x){ filterEnvelope.release = stepper(x, 0.1, 1.5, [[0,0], [0.8, 0.5], [1,1]])},
   x: 59, y: 5, size: 2,
-  min:0.0001, max: 2,
+  min:0.1, max: 1.5,
   orientation: 'vertical',
-  //showValue: false,
+  showValue: false,
   link: 'release'
 })
 release_fader.accentColor = [247, 5, 5]
 release_fader.borderColor = [20, 20, 20]
-release_fader.set(1)
+release_fader.set(0.8)
 
 let resonance_knob = gui.Knob({
   label:'res',
   callback: function(x){ filter.Q.value = x},
   x: 49.5, y: 43, size:.25,
   min:0.99999, max: 30, curve: 2,
-  //showValue: false,
+  showValue: false,
   link: 'res'
 })
 resonance_knob.accentColor = [49,48,55]
@@ -220,7 +220,7 @@ let detune_knob = gui.Knob({
   mapto: tonePitchshift.factor,
   x: 22, y: 25, size:.25,
   min:0.99999, max: 2, curve: 1,
-  //showValue: false,
+  showValue: false,
   link: 'detune'
 })
 detune_knob.accentColor = [49,48,55]
@@ -231,7 +231,7 @@ let speaker_knob = gui.Knob({
   mapto: masterOut.factor,
   x: 78, y: 25, size:.25,
   min:0, max: 0.1, curve: 2,
-  //showValue: false,
+  showValue: false,
   link: 'gain'
 })
 speaker_knob.accentColor = [49,48,55]
