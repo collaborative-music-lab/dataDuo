@@ -241,10 +241,12 @@ class Element {
         p.elements[this.id] = this;
 
         //collab-hub sharing values
-        this.linkName = options.link || null; // share params iff linkName is defined
+        this.linkName = typeof options.link === 'string' ? options.link : null; // share params iff link is defined
+        this.linkFunc = typeof options.link === 'function' ? options.link : null; 
+        
+        // set listener for updates from collab-hub (for linkName only)
         if (this.linkName) {
-            this.ch.on(this.linkName, (from) => {      // set listener for updates from collab-hub
-                console.log('received from', from, this.linkName)
+            this.ch.on(this.linkName, (incoming) => {
                 this.forceSet(this.ch.getControl(this.linkName));
             })
         }
@@ -372,6 +374,9 @@ class Element {
         if (this.linkName) { 
             this.ch.control(this.linkName, this.value);
         }
+        if (this.linkFunc) { 
+            this.linkFunc();
+        }
 
         this.runCallBack()
     }
@@ -402,6 +407,7 @@ class Knob extends Element {
         if (this.linkName) { 
             this.ch.control(this.linkName, this.value);
         }
+        if (this.linkFunc) this.linkFunc();
     }
 
     resize(scaleWidth, scaleHeight) {
@@ -473,6 +479,7 @@ class Knob extends Element {
             if (this.linkName) { 
                 this.ch.control(this.linkName, this.value);
             }
+            if (this.linkFunc) this.linkFunc();
 
             this.runCallBack()
         }
@@ -502,6 +509,7 @@ class Fader extends Element {
         if (this.linkName) { 
             this.ch.control(this.linkName, this.value);
         }
+        if (this.linkFunc) this.linkFunc();
     }
 
     resize(scaleWidth, scaleHeight) {
@@ -588,6 +596,7 @@ class Fader extends Element {
             if (this.linkName) { 
                 this.ch.control(this.linkName, this.value);
             }
+            if (this.linkFunc) this.linkFunc();
             
             this.runCallBack()
         }
@@ -630,6 +639,7 @@ class Pad extends Element {
         // if (this.linkName) { 
         //     this.ch.control(this.linkName, this.value);
         // }
+        // if (this.linkFunc) this.linkFunc();
     }
 
     resize(scaleWidth, scaleHeight) {
@@ -711,6 +721,7 @@ class Pad extends Element {
             // if (this.linkName) { 
             //     this.ch.control(this.linkName, this.value);
             // }
+            // if (this.linkFunc) this.linkFunc();
 
             this.runCallBack()
         }
@@ -736,6 +747,7 @@ class Button extends Element {
         if (this.linkName) { 
             this.ch.control(this.linkName, this.value);
         }
+        if (this.linkFunc) this.linkFunc();
     }
 
     resize(scaleWidth, scaleHeight) {
@@ -786,6 +798,7 @@ class Button extends Element {
                 if (this.linkName) { 
                     this.ch.control(this.linkName, this.value);
                 }
+                if (this.linkFunc) this.linkFunc();
 
                 this.runCallBack();
                 if( this.maptoDefined == 'false') postButtonError('Buttons')
@@ -806,6 +819,7 @@ class Button extends Element {
             if (this.linkName) { 
                 this.ch.control(this.linkName, this.value);
             }
+            if (this.linkFunc) this.linkFunc();
         }
     }
 
@@ -880,6 +894,7 @@ class Toggle extends Button {
         if (this.linkName) { 
             this.ch.control(this.linkName, this.value);
         }
+        if (this.linkFunc) this.linkFunc();
     }
 
     isPressed(){
@@ -897,6 +912,7 @@ class Toggle extends Button {
             if (this.linkName) { 
                 this.ch.control(this.linkName, this.value);
             }
+            if (this.linkFunc) this.linkFunc();
 
             this.runCallBack();
             if( this.maptoDefined == 'false') postButtonError('Toggle buttons')
@@ -939,6 +955,7 @@ class RadioButton extends Button {
         if (this.linkName) { 
             this.ch.control(this.linkName, this.value);
         }
+        if (this.linkFunc) this.linkFunc();
     }
 
     draw() {
@@ -1030,6 +1047,7 @@ class RadioButton extends Button {
             if (this.linkName) { 
                 this.ch.control(this.linkName, this.value);
             }
+            if (this.linkFunc) this.linkFunc();
 
             this.runCallBack();
             this.mapValue(this.value, this.mapto);

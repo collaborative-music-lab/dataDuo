@@ -82,7 +82,7 @@ class CollabHubClient {
                         newValues = incoming.values;
                     this.controls[newHeader] = newValues;
                     if (newHeader in this.handlers) {
-                        this.handlers[newHeader](incoming.from);
+                        this.handlers[newHeader](incoming);
                     }
                     console.log(incoming);
                 }
@@ -125,7 +125,7 @@ class CollabHubClient {
                 if (incoming.from !== this.username) {  // TODO HACK ignore events from self
                     let newHeader = incoming.header;
                     if (newHeader in this.handlers) {
-                        this.handlers[newHeader](incoming.from);
+                        this.handlers[newHeader](incoming);
                     }
                     console.log("Incoming event", incoming);
                 }

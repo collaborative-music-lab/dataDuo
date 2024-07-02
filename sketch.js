@@ -271,7 +271,7 @@ let lineA = gui.Line(0,50,100,50,{
 })
 
 //define our scale, sequence, octave, and index
-let pitches = [60,60,60,60, 60,60,60,60]
+let pitches = [0,0,0,0,0,0,0,0]
 let scale = [0,3,5, 7, 10]
 let octave = 4
 let index = 0
@@ -313,7 +313,8 @@ const sequence = new Tone.Sequence( (time, note) => {
   pitches, // Sequence of note names - ignored
   '8n'// Time interval between each note
 );
-console.log(sequence.get())
+
+
 let seq_knobs = []
 let fader_spacing = 8
 for( let i=0;i<pitches.length;i++){
@@ -324,26 +325,49 @@ for( let i=0;i<pitches.length;i++){
     },
     min:0.01,max:12, value:Math.random()*12,
     size: 1, x: 20 + i*fader_spacing, y: 77,
-    link: 'seq'+i
+    link: 'seq' + i
+    // link: (x) => {ch.control('pitches', pitches)}
   }))
 }
+
+// ch.on('pitches', ({ values }) => {
+//   pitches = values
+//   for( let i=0; i<pitches.length; i++){
+//     seq_knobs[i].forceSet(pitches[i])     // forceSet sets the new values without sending the collab hub messages
+//   }
+// });
+
 let disable_toggles = []
-for( let i=0;i<pitches.length;i++){
+for( let i=0; i<pitches.length; i++){
   disable_toggles.push(gui.Toggle({
     label: "OFF",
     callback: function(){
       if (global_disable[i]) {
-    disable_array[i] = true;
-  } 
-    else {
-    disable_array[i] = false;
-  }
-  global_disable[i] = !global_disable[i];
+      disable_array[i] = true;
+    } 
+      else {
+      disable_array[i] = false;
+    }
+    global_disable[i] = !global_disable[i];
     },
-    size: .5, x: 20 + i*fader_spacing, y: 95
-    
+    size: .5, x: 20 + i*fader_spacing, y: 95,
+    // link: (x) => {ch.control('disable_array', disable_array)}
   }))
 }
+
+// ch.on('disable_array', ({ values }) => {
+//   disable_array = values
+//   for( let i=0;i<pitches.length;i++){
+//     if (disable_array[i]) {
+//       disable_toggles[i].forceSet(false)
+//     } 
+//     else {
+//       disable_toggles[i].forceSet(true)
+//     }
+//   }
+// })
+
+
 let isTransportRunning = true // opposite because will be flipped on initiation callback 
 let toggleButton = gui.Toggle({
   label:'On/Off',
@@ -384,7 +408,6 @@ let transposeAdd = gui.Button({
   label: 'Transpose +',
   callback: function() {
     transpose += 1
-    ch.controls('transpose', transpose)
   },
   x: 88, y: 87, size: 0.6,
   link: 'transpose+'
@@ -394,15 +417,10 @@ let transposeSubtract = gui.Button({
   label: 'Transpose -',
   callback: function subtractnote(){
     transpose -= 1
-    ch.controls('transpose', transpose)
   },
   x: 12, y: 87, size: 0.6,
+  link: 'transpose-'
 })
-
-// handle collab hub transpose
-ch.on('transpose', (value) => {
-  transpose = value
-});
 
 
 let booster = gui.Toggle({
@@ -495,6 +513,14 @@ joinRoomButton.addEventListener('click', () => {
   roomNameEl.placeholder = 'Joined ' + roomNameEl.value
   roomNameEl.value = ''
 });
+
+changeUserName.addEventListener('click', () => {
+  let newUserNameEl = document.getElementById('newUserName')
+  ch.setUsername(newUserNameEl.value)
+  newUserNameEl.placeholder = 'New user: ' + newUserNameEl.value
+  newUserNameEl.value = ''
+});
+
 
 setCCHandler((midi, value) => 
   { console.log(midi, value)
