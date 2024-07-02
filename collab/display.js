@@ -210,3 +210,19 @@ sendChatMessage.addEventListener('click', () => {
   newChatMessageEl.placeholder = 'New message'
   newChatMessageEl.value = ''
 });
+
+// join room handler
+joinRoomButton.addEventListener('click', () => {
+  let roomNameEl = document.getElementById('roomName')
+  ch.joinRoom(roomNameEl.value)
+  roomNameEl.placeholder = 'Joined ' + roomNameEl.value
+  roomNameEl.value = ''
+});
+
+// change username handler
+changeUserName.addEventListener('click', () => {
+  let newUserNameEl = document.getElementById('newUserName')
+  ch.setUsername(newUserNameEl.value)
+  newUserNameEl.placeholder = 'New user: ' + newUserNameEl.value
+  newUserNameEl.value = ''
+});

@@ -370,6 +370,8 @@ class Element {
             this.mapValue(this.value, this.mapto);
         }
 
+        this.runCallBack()
+
         // send updates to collab-hub
         if (this.linkName) { 
             this.ch.control(this.linkName, this.value);
@@ -377,8 +379,6 @@ class Element {
         if (this.linkFunc) { 
             this.linkFunc();
         }
-
-        this.runCallBack()
     }
 
     forceSet(value){
@@ -475,13 +475,13 @@ class Knob extends Element {
             this.value = scaleOutput(this.rawValue,0,1,this.min,this.max,this.curve)
             this.mapValue(this.value, this.mapto);
 
+            this.runCallBack()
+
             // send updates to collab-hub
             if (this.linkName) { 
                 this.ch.control(this.linkName, this.value);
             }
             if (this.linkFunc) this.linkFunc();
-
-            this.runCallBack()
         }
     }
 }
@@ -592,13 +592,13 @@ class Fader extends Element {
             this.value = scaleOutput(this.rawValue,0,1,this.min,this.max,this.curve)
             this.mapValue(this.value, this.mapto);
 
+            this.runCallBack()
+
             // send updates to collab-hub
             if (this.linkName) { 
                 this.ch.control(this.linkName, this.value);
             }
             if (this.linkFunc) this.linkFunc();
-            
-            this.runCallBack()
         }
     }
 }
@@ -717,13 +717,13 @@ class Pad extends Element {
             this.valueY = scaleOutput(this.rawValueY,0,1,this.min,this.max,this.curve)
             this.mapValue(this.valueY,this.maptoY);
 
+            this.runCallBack()
+
             // send updates to collab-hub
             // if (this.linkName) { 
             //     this.ch.control(this.linkName, this.value);
             // }
             // if (this.linkFunc) this.linkFunc();
-
-            this.runCallBack()
         }
     }
 }
@@ -794,14 +794,14 @@ class Button extends Element {
                 this.value = scaleOutput(this.rawValue,0,1,this.min,this.max,this.curve)
                 this.mapValue(this.value,this.mapto);
 
+                this.runCallBack();
+                if( this.maptoDefined == 'false') postButtonError('Buttons')
+
                 // send updates to collab-hub
                 if (this.linkName) { 
                     this.ch.control(this.linkName, this.value);
                 }
                 if (this.linkFunc) this.linkFunc();
-
-                this.runCallBack();
-                if( this.maptoDefined == 'false') postButtonError('Buttons')
 
             }
         }
@@ -908,14 +908,14 @@ class Toggle extends Button {
             this.value = scaleOutput(this.rawValue,0,1,this.min,this.max,this.curve)
             this.mapValue(this.value,this.mapto);
 
+            this.runCallBack();
+            if( this.maptoDefined == 'false') postButtonError('Toggle buttons')
+
             // send updates to collab-hub
             if (this.linkName) { 
                 this.ch.control(this.linkName, this.value);
             }
             if (this.linkFunc) this.linkFunc();
-
-            this.runCallBack();
-            if( this.maptoDefined == 'false') postButtonError('Toggle buttons')
         }
     }
 
@@ -1043,15 +1043,16 @@ class RadioButton extends Button {
             }
             this.active = 1
 
+            
+            this.runCallBack();
+            this.mapValue(this.value, this.mapto);
+            if( this.maptoDefined == 'false') postButtonError('RadioButtons')
+
             // send updates to collab-hub
             if (this.linkName) { 
                 this.ch.control(this.linkName, this.value);
             }
             if (this.linkFunc) this.linkFunc();
-
-            this.runCallBack();
-            this.mapValue(this.value, this.mapto);
-            if( this.maptoDefined == 'false') postButtonError('RadioButtons')
         }
     }
 

@@ -293,6 +293,7 @@ const sequence = new Tone.Sequence( (time, note) => {
     index = ( index+1 )
     return
   }
+  
   //calculate freq for note
   let pitch = Tone.Midi(pitches[index]+octave*12+transpose).toFrequency()
   toneSig.setValueAtTime(pitch, time);
@@ -351,21 +352,21 @@ for( let i=0; i<pitches.length; i++){
     global_disable[i] = !global_disable[i];
     },
     size: .5, x: 20 + i*fader_spacing, y: 95,
-    // link: (x) => {ch.control('disable_array', disable_array)}
+    link: (x) => {ch.control('disable_array', disable_array)}
   }))
 }
 
-// ch.on('disable_array', ({ values }) => {
-//   disable_array = values
-//   for( let i=0;i<pitches.length;i++){
-//     if (disable_array[i]) {
-//       disable_toggles[i].forceSet(false)
-//     } 
-//     else {
-//       disable_toggles[i].forceSet(true)
-//     }
-//   }
-// })
+ch.on('disable_array', ({ values }) => {
+  disable_array = values
+  for( let i=0;i<pitches.length;i++){
+    if (disable_array[i]) {
+      disable_toggles[i].forceSet(false)
+    } 
+    else {
+      disable_toggles[i].forceSet(true)
+    }
+  }
+})
 
 
 let isTransportRunning = true // opposite because will be flipped on initiation callback 
@@ -505,20 +506,6 @@ startButton.addEventListener('click', () => {
     console.log('stop');
     startEnable = 0
   }
-});
-
-joinRoomButton.addEventListener('click', () => {
-  let roomNameEl = document.getElementById('roomName')
-  ch.joinRoom(roomNameEl.value)
-  roomNameEl.placeholder = 'Joined ' + roomNameEl.value
-  roomNameEl.value = ''
-});
-
-changeUserName.addEventListener('click', () => {
-  let newUserNameEl = document.getElementById('newUserName')
-  ch.setUsername(newUserNameEl.value)
-  newUserNameEl.placeholder = 'New user: ' + newUserNameEl.value
-  newUserNameEl.value = ''
 });
 
 
