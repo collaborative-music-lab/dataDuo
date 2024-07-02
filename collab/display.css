@@ -11,6 +11,27 @@
   box-sizing: border-box;
 }
 
+.collab-chat-input {
+  width: 100%;
+  display: flex;
+}
+.collab-chat-input input {
+  flex: 1;
+}
+.collab-chat-input button {
+  margin-left: 3px;
+}
+
+.collab-chat-container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.collab-chat-container > div:first-child {
+  flex: 1;
+}
+
 /* Media query for small screens */
 @media (max-width: 768px) {
   .collab-container {

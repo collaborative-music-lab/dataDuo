@@ -201,3 +201,12 @@ document.addEventListener("DOMContentLoaded", function() {
   }, 100); // Repeat every 0.5 seconds
 
 });
+
+
+// send message handler
+sendChatMessage.addEventListener('click', () => {
+  let newChatMessageEl = document.getElementById('newChatMessage')
+  ch.chat(newChatMessageEl.value)
+  newChatMessageEl.placeholder = 'New message'
+  newChatMessageEl.value = ''
+});

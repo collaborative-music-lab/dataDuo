@@ -40,7 +40,15 @@
     <div class="collab-container">
       <div class="collab-item" id="collab-controls"> </div>
       <div class="collab-item" id="collab-events"> </div>
-      <div class="collab-item" id="collab-chat"> </div>
+      <div class="collab-item"> 
+        <div class="collab-chat-container">
+          <div id="collab-chat"></div>
+          <div class="collab-chat-input">
+            <input type="text" id="newChatMessage" name="newChatMessage" placeholder="New message"></input>
+            <button id="sendChatMessage">Send</button>
+          </div>
+        </div>
+      </div>
     </div>
 
     <script src="collab/display.js"></script>
