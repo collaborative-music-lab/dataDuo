@@ -7,8 +7,12 @@
   Synth for two
 */
 
+const gui = new p5( sketch, 'p5-container' )
+
+
 let player = 'synth' //synth or seq
 let isGlide = false
+let sustainTime = .1
 
 let toneSig = new Tone.Signal()
 let tonePitchshift = new Tone.Multiply()
@@ -41,8 +45,8 @@ sawPitchshift.factor.value = 1;
 pulseWav.connect(toneMixer), toneMixer.connect(filter)
 sawWav.connect(sawMixer), sawMixer.connect(filter)
 
-toneMixer.factor.value = 1
-sawMixer.factor.value = 1
+toneMixer.factor.value = .3
+sawMixer.factor.value = .3
 
 //Connect the filter (VCF)
 filterEnvelope.connect(filterDepth)
@@ -51,7 +55,7 @@ filterDepth.connect(filter.frequency)
 
 cutoffSig.value = 1500
 filterDepth.factor.value = 5000
-filterEnvelope.attack = 0.1
+filterEnvelope.attack = 0.01
 filterEnvelope.decay = 0.1
 filterEnvelope.sustain = 1
 filterEnvelope.release = 0.2
@@ -108,7 +112,6 @@ delayout.connect(masterOut)
 // join collab-hub room
 ch.joinRoom('dataduo-21m080')
 
-const gui = new p5( sketch, 'p5-container' )
 
 let distortion_toggle =  gui.Toggle({
   label:'Accent',
@@ -172,7 +175,8 @@ let wave_fader = gui.Slider({
   callback: function(x){pulseWav.width.value = stepper(x, 0, 1, [[0,0], [0.4, 0.6], [1,1]])},
   orientation: 'vertical',
   showValue: false, 
-  link: 'wave'
+  link: 'wave',
+  border:12
 })
 wave_fader.accentColor = [247, 5, 5]
 wave_fader.borderColor = [20, 20, 20]
@@ -180,12 +184,16 @@ wave_fader.set(0.5)
 
 let freq_fader = gui.Slider({
   label:'freq',
-  callback: function(x){cutoffSig.value = stepper(x, 200, 1200, [[0,0], [0.6, 0.8], [1,1]])},
+  callback: (x)=>{
+        filterDepth.factor.value = x
+        cutoffSig.value = x
+      },
   x: 49, y: 5, size: 2,
   min:200, max: 1200,
   orientation: 'vertical',
   showValue: false,
-  link: 'freq'
+  link: 'freq',
+  border:12
 })
 freq_fader.accentColor = [247, 5, 5]
 freq_fader.borderColor = [20, 20, 20]
@@ -193,12 +201,18 @@ freq_fader.set(700)
 
 let release_fader = gui.Slider({
   label:'release',
-  callback: function(x){ filterEnvelope.release = stepper(x, 0.1, 1.5, [[0,0], [0.8, 0.5], [1,1]])},
+  callback: (x)=>{ 
+        ampEnvelope.decay = stepper(x, 0.1, 5, [[0,0], [0.8, 0.5], [1,5]])
+        ampEnvelope.release = stepper(x, 0.1, 30, [[0,0], [0.8, 0.5], [1,5]])
+        filterEnvelope.decay = stepper(x, 0.1, 5, [[0,0], [0.8, 0.5], [1,5]])
+        filterEnvelope.release = stepper(x, 0.1, 30, [[0,0], [0.8, 0.5], [1,5]])
+      },
   x: 59, y: 5, size: 2,
   min:0.1, max: 1.5,
   orientation: 'vertical',
   showValue: false,
-  link: 'release'
+  link: 'release',
+  border:12
 })
 release_fader.accentColor = [247, 5, 5]
 release_fader.borderColor = [20, 20, 20]
@@ -207,7 +221,7 @@ release_fader.set(0.8)
 let resonance_knob = gui.Knob({
   label:'res',
   callback: function(x){ filter.Q.value = x},
-  x: 49.5, y: 43, size:.25,
+  x: 49.5, y: 43, size:.5,
   min:0.99999, max: 30, curve: 2,
   showValue: false,
   link: 'res'
@@ -217,8 +231,11 @@ resonance_knob.set( 1 )
 
 let detune_knob = gui.Knob({
   label:'detune',
-  mapto: tonePitchshift.factor,
-  x: 22, y: 25, size:.25,
+  callback: x=>{
+      sawPitchshift.factor.value = stepper(x,0.99999,2,[[0,0],[.25,.02],[.45,.49],[.55,.51],[.75,.98],[1,1]])/2
+      //console.log(stepper(x,0.99999,2,[[0,0],[.25,.02],[.45,.49],[.55,.51],[.75,.98],[1,1]]))
+    },
+  x: 22, y: 25, size:.5,
   min:0.99999, max: 2, curve: 1,
   showValue: false,
   link: 'detune'
@@ -239,32 +256,52 @@ speaker_knob.set( 0.05 )
 
 //sampler - beatpads
 
-let kick = "audio/drums-003.mp3"
-let snare = "audio/snare.mp3"
-const kickPlayer = new Tone.Player(kick).toDestination()
-const snarePlayer = new Tone.Player(snare).toDestination()
-kickPlayer.playbackRate = 1
-snarePlayer.playbackRate = 1
+kick = "audio/drums-003.mp3"
+    snare = "audio/snare.mp3"
+    //this.kickPlayer = new Tone.Player(this.kick).toDestination()
+    kickPlayer = new Tone.Sampler({
+      urls: {
+        C4: "drums-003.mp3"
+      },
+      baseUrl: "/audio/"
+    }).toDestination()
+    snarePlayer = new Tone.Sampler({
+      urls: {
+        C4: "snare.mp3"
+      },
+      baseUrl: "/audio/"
+    }).toDestination()
+    //this.snarePlayer = new Tone.Player(this.snare).toDestination()
+    kickPlayer.volume.value = -16
+    snarePlayer.volume.value = -22
+    // this.kickPlayer.playbackRate = 1
+    // this.snarePlayer.playbackRate = 1
 
-//trigger playback of the loaded soundfile
+    //trigger playback of the loaded soundfile
 
-let kick_trigger = gui.Button({
-  label:'kick',
-  callback: function(){ kickPlayer.start()},
-  size: 1, border: 20,
-  x:30, y:40, size: 1,
-  link: 'kick'
-})
-kick_trigger.accentColor = [20,20,20]
+    kick_trigger = gui.Button({
+      label:'kick',
+      callback: ()=>{ 
+        kickPlayer.triggerAttack( 'C4')
+         ch.event('kick')
+      },
+      size: 1, border: 20,
+      x:30, y:40, size: 1,
+      link: 'kick'
+    })
+    kick_trigger.accentColor = [20,20,20]
 
-let snare_trigger = gui.Button({
-  label:'snare',
-  callback: function(){ snarePlayer.start(); ch.event('snare')},
-  size: 1, border: 20,
-  x:70, y:40, size: 1,
-  link: 'snare',
-})
-snare_trigger.accentColor = [20,20,20]
+    snare_trigger = gui.Button({
+      label:'snare',
+      callback: ()=>{ 
+        snarePlayer.triggerAttack( 'C4')
+         ch.event('snare')
+      },
+      size: 1, border: 20,
+      x:70, y:40, size: 1,
+      link: 'snare',
+    })
+    snare_trigger.accentColor = [20,20,20]
 
 let lineA = gui.Line(0,50,100,50,{
   border:4
@@ -290,7 +327,7 @@ let disable_array = [true, true, true, true, true, true, true, true]
 let global_disable = [true, true, true, true, true, true, true, true]
 const sequence = new Tone.Sequence( (time, note) => {
   if (!disable_array[index]) {
-    index = ( index+1 )
+    index = ( index+1 ) % pitches.length
     return
   }
   
@@ -304,10 +341,10 @@ const sequence = new Tone.Sequence( (time, note) => {
   if (isGlide) {
     toneSig.exponentialRampToValueAtTime(pitch, time + 1);
   }
-  ampEnvelope.triggerAttackRelease(.1, time); 
-  filterEnvelope.triggerAttackRelease(.1, time);
-  ampEnvelope.triggerAttackRelease(.1, time); 
-  filterEnvelope.triggerAttackRelease(.1, time);
+  ampEnvelope.triggerAttackRelease(sustainTime, time); 
+  filterEnvelope.triggerAttackRelease(sustainTime, time);
+  //ampEnvelope.triggerAttackRelease(.01, time); 
+  //filterEnvelope.triggerAttackRelease(.01, time);
   //update index
   index = ( index+1 ) % pitches.length
   },
@@ -341,19 +378,20 @@ for( let i=0;i<pitches.length;i++){
 let disable_toggles = []
 for( let i=0; i<pitches.length; i++){
   disable_toggles.push(gui.Toggle({
-    label: "OFF",
-    callback: function(){
-      if (global_disable[i]) {
+    label: i+1,
+    callback: function(x){
+      if (x) {
       disable_array[i] = true;
     } 
       else {
       disable_array[i] = false;
     }
-    global_disable[i] = !global_disable[i];
+    global_disable[i] = disable_array[i];
     },
     size: .5, x: 20 + i*fader_spacing, y: 95,
     link: (x) => {ch.control('disable_array', disable_array)}
   }))
+  disable_toggles[i].set(1)
 }
 
 ch.on('disable_array', ({ values }) => {
@@ -380,6 +418,7 @@ let toggleButton = gui.Toggle({
   } else {
     Tone.Transport.start();
     console.log('started transport')
+    for( let i=0; i<pitches.length; i++) disable_toggles[i].set(1)
   }
   isTransportRunning = !isTransportRunning;
 },
@@ -391,6 +430,7 @@ let tempoKnob = gui.Knob({
   label: 'Tempo',
   callback: function(x){
     Tone.Transport.bpm.value = x;
+    delay.delayTime.value = 45/x
   },
   x: 78, y: 70,
   min:30, max:250, curve: 1, size: 0.3,
@@ -398,9 +438,8 @@ let tempoKnob = gui.Knob({
 })
 let lengthKnob = gui.Knob({
   label: 'Note Length',
-  callback: function(x){ampEnvelope.decay = x
-    ampEnvelope.release = x},
-  min: 0.1, max: 1, curve: 2, size: 1,
+  callback: function(x){sustainTime = x },
+  min: 0.001, max: .5, curve: 2, size: 1,
   x: 22, y: 70, size: 0.3,
   link: 'note-length'
 })
@@ -475,8 +514,8 @@ function stepper(input, min, max, steps) {
       let slope = (internal_values[index] - internal_values[index - 1])/(gui_values[index] - gui_values[index-1])
       let rawCurved = internal_values[index-1] + slope * (rawval - gui_values[index - 1]) 
       let realCurved = (rawCurved * range) + min
-      console.log('input value', input)
-      console.log('curved value', realCurved)
+      //console.log('input value', input)
+      //console.log('curved value', realCurved)
       return realCurved
     }
     index++
@@ -509,73 +548,73 @@ startButton.addEventListener('click', () => {
 });
 
 
-setCCHandler((midi, value) => 
-  { console.log(midi, value)
-    if (midi < 8){
-    seq_knobs[midi].set(value/10.583333)
-  }
-    if (63 < midi < 72){
-        if (value>0){
-          disable_toggles[midi-64].set(disable_toggles[midi-64].value == 0)
-    }
-  }
-    else{
-    switch(midi){
-      case 16: wave_fader.set(value/127); break;
-      case 17: if (value/0.0635 > 500){
-        freq_fader.set(value/0.0635)
-        }
-        else{
-          freq_fader.set(500)
-        }
-        break
-      case 18: release_fader.set(value/25.4); break;
-      case 19:  detune_knob.set(value/63.5)   //I CHANGED THE RELEASE MIN/MAX - knob should be adjusted
+// setCCHandler((midi, value) => 
+//   { console.log(midi, value)
+//     if (midi < 8){
+//     seq_knobs[midi].set(value/10.583333)
+//   }
+//     if (63 < midi < 72){
+//         if (value>0){
+//           disable_toggles[midi-64].set(disable_toggles[midi-64].value == 0)
+//     }
+//   }
+//     else{
+//     switch(midi){
+//       case 16: wave_fader.set(value/127); break;
+//       case 17: if (value/0.0635 > 500){
+//         freq_fader.set(value/0.0635)
+//         }
+//         else{
+//           freq_fader.set(500)
+//         }
+//         break
+//       case 18: release_fader.set(value/25.4); break;
+//       case 19:  detune_knob.set(value/63.5)   //I CHANGED THE RELEASE MIN/MAX - knob should be adjusted
        
     
-      case 20: if (value/4.23333 > 1){
-        resonance_knob.set(value/4.23333)   //I CHANGED THE RESONANCE MIN/MAX - should be fine as is
-        }
-        else{
-          resonance_knob.set(1)
-        }
-        break
-      case 21: speaker_knob.set(value/1270); break;
-      case 22: if (value/127 > 0.1){
-        lengthKnob. set(value/127)
-        }
-        else{
-          lengthKnob.set(0.1)
-        }
-        break
-      case 23: if (value/0.508 > 30){
-        tempoKnob. set(value/0.508)
-        }
-        else{
-          tempoKnob.set(30)
-        }
-        break
-      case 41: if (value>0){
-        toggleButton.set(toggleButton.value==0)}; break;
-      case 43: if (value>0){
-        rand.set(rand.value == 0)}; break;  
-      case 44: if (value>0){
-        booster.set(booster.value == 0)}; break;
-      case 61: transposeSubtract.set(value/127); break;
-      case 62: transposeAdd.set(value/127); break;
-      case 42: if (value>0){
-        delay_toggle.set(delay_toggle.value==0)}; break;
-      case 45: if (value>0){
-        crusher_toggle.set(crusher_toggle.value==0)}; break;
-      case 60: if (value>0){
-        distortion_toggle.set(distortion_toggle.value==0)}; break;
-      case 46: if (value>0){
-        glide_toggle.set(glide_toggle.value==0)}; break;
-      case 58: kick_trigger.set(value/127); break;
-      case 59: snare_trigger.set(value/127); break;
-    }
-  }
-})
+//       case 20: if (value/4.23333 > 1){
+//         resonance_knob.set(value/4.23333)   //I CHANGED THE RESONANCE MIN/MAX - should be fine as is
+//         }
+//         else{
+//           resonance_knob.set(1)
+//         }
+//         break
+//       case 21: speaker_knob.set(value/1270); break;
+//       case 22: if (value/127 > 0.1){
+//         lengthKnob. set(value/127)
+//         }
+//         else{
+//           lengthKnob.set(0.1)
+//         }
+//         break
+//       case 23: if (value/0.508 > 30){
+//         tempoKnob. set(value/0.508)
+//         }
+//         else{
+//           tempoKnob.set(30)
+//         }
+//         break
+//       case 41: if (value>0){
+//         toggleButton.set(toggleButton.value==0)}; break;
+//       case 43: if (value>0){
+//         rand.set(rand.value == 0)}; break;  
+//       case 44: if (value>0){
+//         booster.set(booster.value == 0)}; break;
+//       case 61: transposeSubtract.set(value/127); break;
+//       case 62: transposeAdd.set(value/127); break;
+//       case 42: if (value>0){
+//         delay_toggle.set(delay_toggle.value==0)}; break;
+//       case 45: if (value>0){
+//         crusher_toggle.set(crusher_toggle.value==0)}; break;
+//       case 60: if (value>0){
+//         distortion_toggle.set(distortion_toggle.value==0)}; break;
+//       case 46: if (value>0){
+//         glide_toggle.set(glide_toggle.value==0)}; break;
+//       case 58: kick_trigger.set(value/127); break;
+//       case 59: snare_trigger.set(value/127); break;
+//     }
+//   }
+// })
 
 
 

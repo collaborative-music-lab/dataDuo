@@ -60,7 +60,7 @@ class CollabHubClient {
                 this.username = incoming.id;
                 console.info("My user name is: " + incoming.id);
             }
-            console.log(`${incoming.id}: "${incoming.chat}"`);
+            //console.log(`${incoming.id}: "${incoming.chat}"`);
             this.chatCallback(incoming);
         });
 
@@ -84,7 +84,7 @@ class CollabHubClient {
                     if (newHeader in this.handlers) {
                         this.handlers[newHeader](incoming);
                     }
-                    console.log(incoming);
+                    //console.log(incoming);
                 }
 
                 this.controlsCallback(incoming);
@@ -92,7 +92,7 @@ class CollabHubClient {
         });
 
         this.socket.on("availableControls", (incoming) => {
-            console.info("Available controls:");
+            //console.info("Available controls:");
             for (let e of incoming.controls) {
                 delete e.observers;
                 delete e.mode;
@@ -101,7 +101,7 @@ class CollabHubClient {
         }); 
 
         this.socket.on("observedControls", (incoming) => {
-            console.info("Observed controls:");
+            //console.info("Observed controls:");
             for (let e of incoming.controls) {
                 delete e.observers;
                 delete e.mode;
@@ -110,7 +110,7 @@ class CollabHubClient {
         });
 
         this.socket.on("myControls", (incoming) => {
-            console.info("My controls:");
+            //console.info("My controls:");
             for (let e of incoming.controls) {
                 delete e.observers;
                 delete e.mode;
@@ -127,7 +127,7 @@ class CollabHubClient {
                     if (newHeader in this.handlers) {
                         this.handlers[newHeader](incoming);
                     }
-                    console.log("Incoming event", incoming);
+                    //console.log("Incoming event", incoming);
                 }
 
                 this.eventsCallback(incoming);
@@ -135,7 +135,7 @@ class CollabHubClient {
         });
 
         this.socket.on("availableEvents", (incoming) => {
-            console.info("Available events:");
+            //console.info("Available events:");
             for (let e of incoming.events) {
                 delete e.observers;
                 delete e.mode;
@@ -144,7 +144,7 @@ class CollabHubClient {
         });
 
         this.socket.on("observedEvents", (incoming) => {
-            console.info("Observed events:");
+            //console.info("Observed events:");
             for (let e of incoming.events) {
                 delete e.observers;
                 delete e.mode;
@@ -153,7 +153,7 @@ class CollabHubClient {
         });
 
         this.socket.on("myEvents", (incoming) => {
-            console.info("My events:");
+            //console.info("My events:");
             for (let e of incoming.events) {
                 delete e.observers;
                 delete e.mode;
@@ -372,7 +372,7 @@ class CollabHubClient {
         if (this.recentChat.length > this.chatMaxDisplay) {
             this.recentChat.shift();
         }
-        console.log('CHAT: ', this.recentChat);
+        //console.log('CHAT: ', this.recentChat);
     }
 
     handleControl(incoming) {
@@ -381,7 +381,7 @@ class CollabHubClient {
             from: incoming.from,
             time: Date.now()
         };
-        console.log('CONTROLS: ', this.recentControls);
+        //console.log('CONTROLS: ', this.recentControls);
     }
 
     handleEvent(incoming) {
@@ -390,7 +390,7 @@ class CollabHubClient {
             from: incoming.from,
             time: Date.now()
         });
-        console.log('EVENTS: ', this.recentEvents);
+        //console.log('EVENTS: ', this.recentEvents);
     }
   }
   

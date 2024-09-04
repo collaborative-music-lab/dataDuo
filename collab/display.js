@@ -202,9 +202,11 @@ document.addEventListener("DOMContentLoaded", function() {
 
 });
 
-
 // send message handler
+const sendChatMessage = document.getElementById('sendChatMessage')
+
 sendChatMessage.addEventListener('click', () => {
+  console.log('button_clicked')
   let newChatMessageEl = document.getElementById('newChatMessage')
   ch.chat(newChatMessageEl.value)
   newChatMessageEl.placeholder = 'New message'
@@ -221,6 +223,7 @@ joinRoomButton.addEventListener('click', () => {
 
 // change username handler
 changeUserName.addEventListener('click', () => {
+  console.log('user_name')
   let newUserNameEl = document.getElementById('newUserName')
   ch.setUsername(newUserNameEl.value)
   newUserNameEl.placeholder = 'New user: ' + newUserNameEl.value
