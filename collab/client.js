@@ -20,6 +20,11 @@ class CollabHubClient {
         this.username = undefined;
         this.roomJoined = undefined;
 
+        // Flags for controlling behavior
+        this.isListening = true; // Determines if listening to incoming messages
+        this.canSend = true;     // Determines if sending messages is allowed
+
+
         // Callbacks
         this.controlsCallback = (incoming) => {};
         this.eventsCallback = (incoming) => {};
@@ -44,39 +49,45 @@ class CollabHubClient {
                 chat: "Connected with id: " + this.socket.id,
                 target: "all"
             };
-            this.socket.emit("chat", outgoing);
+            if (this.canSend) this.socket.emit("chat", outgoing);
 
             // ALTERNATIVELY, just request username from server
             // socket.emit("addUsername", { "username": u });
         });
 
         this.socket.on("serverMessage", (incoming) => {
-            console.info(incoming.message);
+            if (this.isListening) {
+                console.info(incoming.message);
+            }
         });
 
         this.socket.on("chat", (incoming) => {
-            // TODO HACK checking messages to receive my user name
-            if (incoming.chat === "Connected with id: " + this.socket.id) {
-                this.username = incoming.id;
-                console.info("My user name is: " + incoming.id);
+            if (this.isListening) {
+                // TODO HACK checking messages to receive my user name
+                if (incoming.chat === "Connected with id: " + this.socket.id) {
+                    this.username = incoming.id;
+                    console.info("My user name is: " + incoming.id);
+                }
+                //console.log(`${incoming.id}: "${incoming.chat}"`);
+                this.chatCallback(incoming);
             }
-            //console.log(`${incoming.id}: "${incoming.chat}"`);
-            this.chatCallback(incoming);
         });
 
         this.socket.on("otherUsers", (incoming) => {
-            let userList = "";
-            let iterations = incoming.users.length;
-            for (let u of incoming.users) {
-                userList += --iterations ? `${u}, ` : u;
+            if (this.isListening) {
+                let userList = "";
+                let iterations = incoming.users.length;
+                for (let u of incoming.users) {
+                    userList += --iterations ? `${u}, ` : u;
+                }
+                console.info(`Connected users: ${userList}`);
             }
-            console.info(`Connected users: ${userList}`);
         });
 
         // controls
 
         this.socket.on("control", (incoming) => {
-            if (this.roomJoined) {                      // Kind of HACK, ignore controls before joining a room
+            if (this.isListening && this.roomJoined ) {                      // Kind of HACK, ignore controls before joining a room
                 if (incoming.from !== this.username) {  // TODO HACK ignore controls from self
                     let newHeader = incoming.header,
                         newValues = incoming.values;
@@ -92,29 +103,35 @@ class CollabHubClient {
         });
 
         this.socket.on("availableControls", (incoming) => {
-            //console.info("Available controls:");
-            for (let e of incoming.controls) {
-                delete e.observers;
-                delete e.mode;
-                console.log(e);
+            if( this.isListening  ) {
+                //console.info("Available controls:");
+                for (let e of incoming.controls) {
+                    delete e.observers;
+                    delete e.mode;
+                    console.log(e);
+                }
             }
         }); 
 
         this.socket.on("observedControls", (incoming) => {
             //console.info("Observed controls:");
-            for (let e of incoming.controls) {
-                delete e.observers;
-                delete e.mode;
-                console.log(e);
+            if( this.isListening  ) {
+                for (let e of incoming.controls) {
+                    delete e.observers;
+                    delete e.mode;
+                    console.log(e);
+                }
             }
         });
 
         this.socket.on("myControls", (incoming) => {
             //console.info("My controls:");
-            for (let e of incoming.controls) {
-                delete e.observers;
-                delete e.mode;
-                console.log(e);
+            if( this.isListening  ) {
+                for (let e of incoming.controls) {
+                    delete e.observers;
+                    delete e.mode;
+                    console.log(e);
+                }
             }
         });
 
@@ -183,7 +200,7 @@ class CollabHubClient {
     // sending data
 
     control(...args) {
-        if (this.roomJoined) {
+        if (this.roomJoined && this.canSend) {
             let mode = args[0] === "publish" || args[0] === "pub" ? "publish" : "push",
                 header = mode === "publish" ? args[1] : args[0],
                 values = mode === "publish" ? args[2] : args[1],
@@ -195,13 +212,15 @@ class CollabHubClient {
                 target: target
             };
             this.socket.emit("control", outgoing);
+        } else if (!this.canSend) {
+            console.info("Sending is paused.");
         } else {
             console.info("Join a room to send controls.");
         }
     }
 
     event(...args) {
-        if (this.roomJoined) {
+        if (this.roomJoined && this.canSend) {
             let mode = args[0] === "publish" || args[0] === "pub" ? "publish" : "push",
                 header = mode === "publish" ? args[1] : args[0],
                 target = mode === "publish" ? args[2] ? args[2] : this.roomJoined : args[1] ? args[1] : this.roomJoined;
@@ -217,7 +236,7 @@ class CollabHubClient {
     }
 
     chat(m, t) {
-        if (this.roomJoined) {
+        if (this.roomJoined && this.canSend) {
             const outgoing = {
                 chat: m
             };
@@ -259,6 +278,8 @@ class CollabHubClient {
         this.socket.emit("joinRoom", outgoing);
 
         this.roomJoined = roomName;     // room joined, can start receiving controls/events
+        this.resumeSending = true
+        this.resumeListening = true
     }
 
     leaveRoom(roomName) {
@@ -316,6 +337,27 @@ class CollabHubClient {
         let outgoing = { header: header };
         this.socket.emit("clearEvent", outgoing);
         this.socket.emit("getMyEvents");
+    }
+
+    // Methods to pause/resume listening and sending
+    pauseListening() {
+        this.isListening = false;
+        console.info("Listening paused.");
+    }
+
+    resumeListening() {
+        this.isListening = true;
+        console.info("Listening resumed.");
+    }
+
+    pauseSending() {
+        this.canSend = false;
+        console.info("Sending paused.");
+    }
+
+    resumeSending() {
+        this.canSend = true;
+        console.info("Sending resumed.");
     }
   }  
 
