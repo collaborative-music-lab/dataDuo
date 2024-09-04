@@ -263,13 +263,13 @@ kick = "audio/drums-003.mp3"
       urls: {
         C4: "drums-003.mp3"
       },
-      baseUrl: "/audio/"
+      baseUrl: "/dataduo/audio/"
     }).toDestination()
     snarePlayer = new Tone.Sampler({
       urls: {
         C4: "snare.mp3"
       },
-      baseUrl: "/audio/"
+      baseUrl: "/dataduo/audio/"
     }).toDestination()
     //this.snarePlayer = new Tone.Player(this.snare).toDestination()
     kickPlayer.volume.value = -16
