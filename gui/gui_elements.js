@@ -177,6 +177,7 @@ class Element {
     constructor(p, options) {
         this.p = p;
         this.ch = window.ch;
+        this.typee = 'default';
         this.theme = activeTheme;
         this.label = options.label || "myElement";
         this.id = this.label;
@@ -366,7 +367,7 @@ class Element {
         if(typeof(value) === 'string') this.value = value;
         else{
             this.value = value
-            this.rawValue = unScaleOutput(value,0,1,this.min,this.max,this.curve) || 0.;
+            this.rawValue = unScaleOutput(value,0,1,this.min,this.max,this.curve);
             this.mapValue(this.value, this.mapto);
         }
 
@@ -386,7 +387,7 @@ class Element {
         if(typeof(value) === 'string') this.value = value;
         else{
             this.value = value
-            this.rawValue = unScaleOutput(value,0,1,this.min,this.max,this.curve) || 0.5;
+            this.rawValue = unScaleOutput(value,0,1,this.min,this.max,this.curve);
             this.mapValue(this.value, this.mapto);
         }
 
@@ -865,6 +866,7 @@ callback: function(val){ vco.type = val }`)
 class Momentary extends Button {
     constructor(p, options) {
         super(p, options);
+        this.typee = 'momentary';
         this.value = options.value || 0
         this.rawValue = this.value
     }
@@ -875,6 +877,32 @@ class Momentary extends Button {
             this.rawValue = 0
             this.value = scaleOutput(this.rawValue,0,1,this.min,this.max,this.curve)
             this.mapValue(this.value,this.mapto);
+            this.runCallBack();
+
+            // send updates to collab-hub
+            if (this.linkName) { 
+                this.ch.control(this.linkName, this.value);
+            }
+            if (this.linkFunc) this.linkFunc();
+        }
+    }
+
+    forceSet(value){
+        if (value) {
+            this.active = 1
+            this.rawValue = 1
+            this.value = scaleOutput(this.rawValue,0,1,this.min,this.max,this.curve)
+            this.mapValue(this.value,this.mapto);
+
+            this.runCallBack();
+            if( this.maptoDefined == 'false') postButtonError('Buttons')
+
+        } else {
+            this.active = 0
+            this.rawValue = 0
+            this.value = scaleOutput(this.rawValue,0,1,this.min,this.max,this.curve)
+            this.mapValue(this.value,this.mapto);
+
             this.runCallBack();
         }
     }
@@ -922,7 +950,15 @@ class Toggle extends Button {
     isReleased(){
         if( this.active == 1 )  {
             this.active = 0
+
+            // send updates to collab-hub
+            if (this.linkName) { 
+                this.ch.control(this.linkName, this.value);
+            }
+            if (this.linkFunc) this.linkFunc();
         }
+
+
     }
 
     forceSet(value){

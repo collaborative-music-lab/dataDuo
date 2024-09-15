@@ -223,9 +223,5 @@ joinRoomButton.addEventListener('click', () => {
 
 // change username handler
 changeUserName.addEventListener('click', () => {
-  console.log('user_name')
-  let newUserNameEl = document.getElementById('newUserName')
-  ch.setUsername(newUserNameEl.value)
-  newUserNameEl.placeholder = 'New user: ' + newUserNameEl.value
-  newUserNameEl.value = ''
+  updateUserName(document.getElementById('newUserName'))
 });

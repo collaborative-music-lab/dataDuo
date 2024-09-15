@@ -196,14 +196,17 @@ document.addEventListener('keyup', handleKeyUp);
 function handleKeyDown(event) {
     if (midiOn) {
         const keyCode = event.keyCode;
+        const key = event.key;
+        //console.log('ascii ', keyCode)
+        keyHandler(key, 1)
         if (!activeKeys[keyCode]) {
             activeKeys[keyCode] = true;
             if (keyToNote[keyCode]) {
                 let note = keyToNote[keyCode];
                 let midiNote = note["midi"] + (KB_octave - 4) * 12;
                 if (midiNote <= 127) {
-                    midiHandlerInstance.handleNoteOn(midiNote,127)
-                    console.log('Keyboard Note on:', midiNote); // Replace with MIDI handler
+                    //midiHandlerInstance.handleNoteOn(midiNote,127)
+                    //console.log('Keyboard Note on:', midiNote); // Replace with MIDI handler
                 }
             } else if (keyCode === 37) { // Arrow left
                 changeOctave(-1);
@@ -217,19 +220,61 @@ function handleKeyDown(event) {
 function handleKeyUp(event) {
     if (midiOn) {
         const keyCode = event.keyCode;
+        const key = event.key;
+        keyHandler(key, 0)
         activeKeys[keyCode] = false;
         if (keyToNote[keyCode]) {
             let note = keyToNote[keyCode];
             let midiNote = note["midi"] + (KB_octave - 4) * 12;
             if (midiNote <= 127) {
-                midiHandlerInstance.handleNoteOff(midiNote)
-                console.log('Keyboard Note off:', midiNote); // Replace with MIDI handler
+                //midiHandlerInstance.handleNoteOff(midiNote)
+                //console.log('Keyboard Note off:', midiNote); // Replace with MIDI handler
             }
         }
     }
 }
 
 console.log('end midi.js')
+
+function keyHandler(key, state){
+    
+    if(synthEnables.includes(key)){
+        if(state==1) {
+            let val = enable_toggles[synthEnables.indexOf(key)].value
+            enable_toggles[synthEnables.indexOf(key)].set(val==0)
+        }
+        return
+    }
+    
+    if(kickEnables.includes(key)){
+        if(state==1) {
+            let val = kick_toggles[kickEnables.indexOf(key)].value
+            kick_toggles[kickEnables.indexOf(key)].set(val==0)
+        }
+        return
+    }
+    
+    if(snareEnables.includes(key)){
+        if(state==1) {
+            let val = snare_toggles[snareEnables.indexOf(key)].value
+            snare_toggles[snareEnables.indexOf(key)].set(val==0)
+        }
+        return
+    }
+
+    //console.log(key,state)
+    switch(key){
+    case `'`: glide_toggle.set(state); break;
+    case '[': rand.set(state); break;
+    case ']': if(state) toggleButton.set(toggleButton.value==0); break;
+    case '\\': booster.set(state); break;
+    case '.': if(state) kickPlayer.triggerAttack( 'C4'); break;
+    case '/': if(state) snarePlayer.triggerAttack( 'C4'); break;
+    case '0': if(state) resetTranspose.set(state); break;
+    case '-': if(state) transposeSubtract.set(state); break;
+    case '=': if(state) transposeAdd.set(state); break;
+    }
+}//keyHandler
 
 //MIDI selector setup
 // function populateMIDIDevices() {

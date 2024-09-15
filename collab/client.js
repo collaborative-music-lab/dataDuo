@@ -10,6 +10,7 @@ Version v0.1.0 alpha | June 18, 2022
 // Dependency:
 // <script src="https://cdn.socket.io/4.7.5/socket.io.min.js" integrity="sha384-2huaZvOR9iDzHqslqwpR87isEmrfxqyWOF7hr7BY6KG0+hVKLoEXMPUJw3ynWuhO" crossorigin="anonymous"></script>
 
+let ch_debug = 1
 
 class CollabHubClient {
 
@@ -19,10 +20,11 @@ class CollabHubClient {
         this.handlers = {};
         this.username = undefined;
         this.roomJoined = undefined;
+        this.defaultUserName = 1;
 
         // Flags for controlling behavior
-        this.isListening = true; // Determines if listening to incoming messages
-        this.canSend = true;     // Determines if sending messages is allowed
+        this.isListening = false; // Determines if listening to incoming messages
+        this.canSend = false;     // Determines if sending messages is allowed
 
 
         // Callbacks
@@ -95,7 +97,7 @@ class CollabHubClient {
                     if (newHeader in this.handlers) {
                         this.handlers[newHeader](incoming);
                     }
-                    //console.log(incoming);
+                    if(ch_debug) console.log(incoming);
                 }
 
                 this.controlsCallback(incoming);
@@ -104,7 +106,7 @@ class CollabHubClient {
 
         this.socket.on("availableControls", (incoming) => {
             if( this.isListening  ) {
-                //console.info("Available controls:");
+                if(ch_debug)console.info("Available controls:");
                 for (let e of incoming.controls) {
                     delete e.observers;
                     delete e.mode;
@@ -114,7 +116,7 @@ class CollabHubClient {
         }); 
 
         this.socket.on("observedControls", (incoming) => {
-            //console.info("Observed controls:");
+            if(ch_debug)console.info("Observed controls:");
             if( this.isListening  ) {
                 for (let e of incoming.controls) {
                     delete e.observers;
@@ -125,7 +127,7 @@ class CollabHubClient {
         });
 
         this.socket.on("myControls", (incoming) => {
-            //console.info("My controls:");
+            if(ch_debug)console.info("My controls:");
             if( this.isListening  ) {
                 for (let e of incoming.controls) {
                     delete e.observers;
@@ -144,7 +146,7 @@ class CollabHubClient {
                     if (newHeader in this.handlers) {
                         this.handlers[newHeader](incoming);
                     }
-                    //console.log("Incoming event", incoming);
+                    if(ch_debug)console.log("Incoming event", incoming);
                 }
 
                 this.eventsCallback(incoming);
@@ -152,7 +154,7 @@ class CollabHubClient {
         });
 
         this.socket.on("availableEvents", (incoming) => {
-            //console.info("Available events:");
+            if(ch_debug)console.info("Available events:");
             for (let e of incoming.events) {
                 delete e.observers;
                 delete e.mode;
@@ -161,7 +163,7 @@ class CollabHubClient {
         });
 
         this.socket.on("observedEvents", (incoming) => {
-            //console.info("Observed events:");
+            if(ch_debug)console.info("Observed events:");
             for (let e of incoming.events) {
                 delete e.observers;
                 delete e.mode;
@@ -170,7 +172,7 @@ class CollabHubClient {
         });
 
         this.socket.on("myEvents", (incoming) => {
-            //console.info("My events:");
+            if(ch_debug)console.info("My events:");
             for (let e of incoming.events) {
                 delete e.observers;
                 delete e.mode;
@@ -212,10 +214,11 @@ class CollabHubClient {
                 target: target
             };
             this.socket.emit("control", outgoing);
+            if( ch_debug ) console.log('control', outgoing)
         } else if (!this.canSend) {
-            console.info("Sending is paused.");
+            //console.info("Sending is paused.");
         } else {
-            console.info("Join a room to send controls.");
+            //console.info("Join a room to send controls.");
         }
     }
 
@@ -230,8 +233,9 @@ class CollabHubClient {
                 target: target
             };
             this.socket.emit("event", outgoing);
+            if( ch_debug ) console.log('event', outgoing)
         } else {
-            console.info("Join a room to send events.");
+            //console.info("Join a room to send events.");
         }
     }
 
@@ -270,6 +274,10 @@ class CollabHubClient {
     // room management
 
     joinRoom(roomName) {
+        if( this.defaultUserName == 1) {
+            setDefaultUserName()
+            this.defaultUserName = 0
+        }
         if (this.roomJoined) {
             this.leaveRoom(this.roomJoined);
         }
@@ -278,8 +286,8 @@ class CollabHubClient {
         this.socket.emit("joinRoom", outgoing);
 
         this.roomJoined = roomName;     // room joined, can start receiving controls/events
-        this.resumeSending = true
-        this.resumeListening = true
+        this.resumeSending()
+        this.resumeListening()
     }
 
     leaveRoom(roomName) {
@@ -438,3 +446,21 @@ class CollabHubClient {
   
 ch = new CollabHubClient();
 chTracker = new CollabHubTracker(ch);
+
+function updateUserName(newUserNameEl){
+    console.log('user_name')
+  //let newUserNameEl = document.getElementById('newUserName')
+  ch.setUsername(newUserNameEl.value)
+  newUserNameEl.placeholder = 'New user: ' + newUserNameEl.value
+  newUserNameEl.value = ''
+}
+
+function setDefaultUserName(){
+    let tempName = 'FaMLE_' + Math.floor(Math.random()*999).toString()
+    console.log('user_name')
+  let newUserNameEl = document.getElementById('newUserName')
+  ch.setUsername( tempName)
+  newUserNameEl.placeholder = 'New user: ' + tempName
+  newUserNameEl.value = ''
+}
+
