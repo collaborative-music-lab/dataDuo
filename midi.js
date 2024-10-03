@@ -270,6 +270,7 @@ function keyHandler(key, state){
     case '\\': booster.set(state); break;
     case '.': if(state) kickPlayer.triggerAttack( 'C4'); break;
     case '/': if(state) snarePlayer.triggerAttack( 'C4'); break;
+    case ';': if(state) drumToggleButton.set(drumToggleButton.value==0); break;
     case '0': if(state) resetTranspose.set(state); break;
     case '-': if(state) transposeSubtract.set(state); break;
     case '=': if(state) transposeAdd.set(state); break;

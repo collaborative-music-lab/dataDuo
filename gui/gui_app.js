@@ -1,7 +1,13 @@
 // This file sets up the p5 sketch using the elements and themes
 (function(global) {
-    const sketch = (p) => {
+    const gui_sketch = (p) => {
         let grey = p.color(220, 229, 234);
+
+        //theme functions
+    // p.setTheme = setTheme
+    // p.listThemes = listThemes
+    // p.setThemeParameters = setThemeParameters
+    // p.exportTheme = exportTheme
 
         p.setup = function() {
             let divID = p.canvas.parentElement.id;
@@ -68,5 +74,5 @@
     };
     };
 
-    global.sketch = sketch;
+    global.gui_sketch = gui_sketch;
 })(this);

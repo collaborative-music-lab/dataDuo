@@ -7,7 +7,13 @@
   Synth for two
 */
 
-const gui = new p5( sketch, 'p5-container' )
+const gui = new p5( gui_sketch, 'p5-container' )
+gui.setTheme('dark')
+gui.setThemeParameters({
+  'borderColor': [200,200,200],
+  'textColor': [255,165,0]
+})
+//gui.setColor('border', [150,150,150])
 
 
 let player = 'synth' //synth or seq
@@ -57,7 +63,7 @@ cutoffSig.value = 1500
 filterDepth.factor.value = 5000
 filterEnvelope.attack = 0.01
 filterEnvelope.decay = 0.1
-filterEnvelope.sustain = .5
+filterEnvelope.sustain = .7
 filterEnvelope.release = 0.2
 filter.rolloff = -24
 filter.Q.value = 1
@@ -69,8 +75,9 @@ filter.connect(amp)
 ampEnvelope.connect(amp.factor)
 ampEnvelope.attack = 0.3
 ampEnvelope.delay = 0.1
-ampEnvelope.sustain = .5
+ampEnvelope.sustain = 1
 ampEnvelope.release = 0.9
+ampEnvelope.attackCurve = 'linear'
 ampEnvelope.releaseCurve = 'linear'
 
 //effects chain
@@ -136,7 +143,7 @@ let distortion_toggle =  gui.Knob({
   x: 85, y:10, size: 0.8,
   link: 'dist', value: 0
 })
-distortion_toggle.accentColor = [51,145,219]
+distortion_toggle.accentColor = [46,152,99]
 
 
 crusher.wet.value = 1
@@ -155,9 +162,8 @@ let glide_toggle =  gui.Momentary({
   callback: function(x){isGlide = x},
   x: 15, y:10, size: 0.8,
   link: 'glide',
-  textSize: 1.5
+  textSize: 1.5, accentColor :[247, 5, 5]
 })
-glide_toggle.accentColor = [51,145,219]
 glide_toggle.set(0)
 /*
 let delay_toggle =  gui.Toggle({
@@ -178,7 +184,7 @@ let delay_knob = gui.Knob({
   showValue: false,
   link: 'delayknob'
 })
-delay_knob.accentColor = [49,48,55]
+delay_knob.accentColor = [46,152,99]
 delay_knob.set( 0.0001 )
 
 function delayControl(x) {
@@ -205,7 +211,6 @@ let wave_fader = gui.Slider({
   border:12
 })
 wave_fader.accentColor = [247, 5, 5]
-wave_fader.borderColor = [20, 20, 20]
 wave_fader.set(0.5)
 
 let freq_fader = gui.Slider({
@@ -222,27 +227,27 @@ let freq_fader = gui.Slider({
   border:12
 })
 freq_fader.accentColor = [247, 5, 5]
-freq_fader.borderColor = [20, 20, 20]
 freq_fader.set(700)
 
 let release_fader = gui.Slider({
   label:'release',
   callback: (x)=>{ 
-        ampEnvelope.attack = x<.5 ? 0.01 : x-.49 * Math.pow(x+.5,.75)
-        ampEnvelope.decay = stepper(x, 0.1, 5, [[0,0], [0.8, 0.5], [1,5]])
-        ampEnvelope.release = stepper(x, 0.1, 30, [[0,0], [0.8, 0.5], [1,5]])
-        filterEnvelope.decay = stepper(x, 0.1, 5, [[0,0], [0.8, 0.5], [1,5]])
-        filterEnvelope.release = stepper(x, 0.1, 30, [[0,0], [0.8, 0.5], [1,5]])
+        ampEnvelope.attack = x<.6 ? 0.01 : 0.01 + Math.pow(x-.6,.15)
+        ampEnvelope.decay = stepper(x, 0., 5, [[0,0], [0.8, 0.5], [1,5]])+.02
+        ampEnvelope.release = stepper(x, 0., 30, [[0,0], [0.8, 0.5], [1,5]])*5+.02
+        filterEnvelope.attack = x<.6 ? 0.01 : 0.01 + Math.pow(x-.6,.15)
+        filterEnvelope.decay = stepper(x, 0., 5, [[0,0], [0.8, 0.5], [1,5]])+.02
+        filterEnvelope.release = stepper(x, 0.0, 30, [[0,0], [0.8, 0.5], [1,5]])*5+.02
+        //console.log(ampEnvelope.get())
       },
   x: 59, y: 5, size: 2,
-  min:0.1, max: 1.5,
+  min:0., max: 1,
   orientation: 'vertical',
   showValue: false,
   link: 'release',
   border:12
 })
 release_fader.accentColor = [247, 5, 5]
-release_fader.borderColor = [20, 20, 20]
 release_fader.set(0.8)
 
 let resonance_knob = gui.Knob({
@@ -251,9 +256,9 @@ let resonance_knob = gui.Knob({
   x: 49.5, y: 43, size:.5,
   min:0.99999, max: 30, curve: 2,
   showValue: false,
-  link: 'res'
+  link: 'res',
+  accentColor :[247, 5, 5]
 })
-resonance_knob.accentColor = [49,48,55]
 resonance_knob.set( 1 )
 
 let detune_knob = gui.Knob({
@@ -265,9 +270,9 @@ let detune_knob = gui.Knob({
   x: 22, y: 25, size:.5,
   min:0.99999, max: 2, curve: 1,
   showValue: false,
-  link: 'detune'
+  link: 'detune',
+  accentColor :[247, 5, 5]
 })
-detune_knob.accentColor = [49,48,55]
 detune_knob.set( 1 )
 
 let speaker_knob = gui.Knob({
@@ -277,7 +282,7 @@ let speaker_knob = gui.Knob({
   min:0, max: 0.1, curve: 2,
   showValue: false
 })
-speaker_knob.accentColor = [49,48,55]
+speaker_knob.accentColor = [46,152,99]
 speaker_knob.set( 0.05 )
 
 //sampler - beatpads
@@ -290,18 +295,39 @@ kick = "audio/drums-003.mp3"
         C4: "drums-003.mp3"
       },
       baseUrl: "/dataduo/audio/"
-    }).toDestination()
+    })
     snarePlayer = new Tone.Sampler({
       urls: {
         C4: "snare.mp3"
       },
       baseUrl: "/dataduo/audio/"
-    }).toDestination()
+    })
     //this.snarePlayer = new Tone.Player(this.snare).toDestination()
-    kickPlayer.volume.value = -16
-    snarePlayer.volume.value = -22
+    // kickPlayer.volume.value = -16
+    // snarePlayer.volume.value = -22
     // this.kickPlayer.playbackRate = 1
     // this.snarePlayer.playbackRate = 1
+    kickMix = new Tone.Panner()
+    kickSplit = new Tone.Split()
+    kickPlayer.connect(kickMix)
+    snarePlayer.connect(kickMix)
+    kickMix.connect(kickSplit)
+    //kickMix.connect(distgain,1,0)
+    //kickMix.connect(kickSplit)
+    kickSplit.connect(distgain,1,0)
+    kickSplit.connect(masterOut,0,0)
+    //kickSplit.right.connect(dist)
+
+    let kickMixKnob = gui.Knob({
+      label:'drum mix',
+      mapto: kickMix.pan,
+      x: 80, y: 40, size:.5,
+      min:-1, max: 1,
+      showValue: false,
+      value: -1,
+      link: 'drum-mix'
+    })
+    kickMixKnob.set(-1)
 
     //trigger playback of the loaded soundfile
 
@@ -316,7 +342,8 @@ kick = "audio/drums-003.mp3"
       link: 'kick',
       textSize: 1.5
     })
-    kick_trigger.accentColor = [20,20,20]
+    kick_trigger.accentColor = [200,200,200]
+    kick_trigger.borderColor = [100,100,255]
 
     snare_trigger = gui.Button({
       label:'snare \n ( / )',
@@ -329,7 +356,8 @@ kick = "audio/drums-003.mp3"
       link: 'snare',
       textSize: 1.5
     })
-    snare_trigger.accentColor = [20,20,20]
+    snare_trigger.accentColor = [200,200,200]
+    snare_trigger.borderColor = [100,100,255]
 
 let lineA = gui.Line(0,50,100,50,{
   border:4
@@ -359,7 +387,7 @@ const sequence = new Tone.Sequence( (time, note) => {
   clock = clock+1 
 
   //trigger drums
-  if( clock % 2 == 0){
+  if( clock % 2 == 0 && isDrumRunning == true){
     if( kick_enable[Math.floor(clock/2)%8]){
       try {kickPlayer.triggerAttack( 'C4', time)}
       catch{}
@@ -382,11 +410,6 @@ const sequence = new Tone.Sequence( (time, note) => {
     index = clock % pitches.length
   }
 
-  //if tranport is stopped or step is disabled
-  if (isTransportRunning == 0 || enable_array[index] == false) {
-    return
-  }
-
   //calculate freq for note
   let pitch = Tone.Midi(pitches[index]+octave*12+transpose).toFrequency()
   
@@ -398,11 +421,14 @@ const sequence = new Tone.Sequence( (time, note) => {
     //toneSig.setValueAtTime(pitch, time);
   }
 
-  if( isGlide ) toneSig.exponentialRampToValueAtTime(pitch, time + sustainTime/1);
-  else toneSig.setValueAtTime(pitch, time);
+  //trigger synth
+  if (isTransportRunning == 1 && enable_array[index] == true){
+    if( isGlide ) toneSig.exponentialRampToValueAtTime(pitch, time + sustainTime/1);
+    else toneSig.setValueAtTime(pitch, time);
 
-  ampEnvelope.triggerAttackRelease(sustainTime, time); 
-  filterEnvelope.triggerAttackRelease(sustainTime, time);
+    ampEnvelope.triggerAttackRelease(sustainTime, time); 
+    filterEnvelope.triggerAttackRelease(sustainTime, time);
+    }
   },
   pitches, // Sequence of note names - ignored
   '16n'// Time interval between each note
@@ -418,8 +444,8 @@ for( let i=0;i<pitches.length;i++){
       pitches[i]= scaleToMidi(Math.floor(x))
     },
     min:0.01,max:12, value:Math.random()*12,
-    size: 1, x: 20 + i*fader_spacing, y: 67,
-    link: 'seq' + i
+    size: 1, border: 10, x: 20 + i*fader_spacing, y: 67,
+    link: 'seq' + i, accentColor :[247, 5, 5]
     // link: (x) => {ch.control('pitches', pitches)}
   }))
 }
@@ -445,7 +471,8 @@ for( let i=0; i<pitches.length; i++){
       else  enable_array[i] = false;
     },
     size: .5, x: 20 + i*fader_spacing, y: 85,
-    link: (x) => {ch.control('enable_array', enable_array)}
+    link: (x) => {ch.control('enable_array', enable_array)},
+    accentColor :[247, 5, 5]
   }))
 }
 for( let i=0; i<pitches.length; i++) enable_toggles[i].set(1)
@@ -512,24 +539,41 @@ gui.Text({
   x: 15, y: 90, border: 0.1
 })
 
+let kickLevel = gui.Knob({
+  label: 'kick level', labelX: -4,labelY:-3,
+  mapto:'kickPlayer.volume',
+  min: -12, max: 18, curve: 1, size: .5,
+  x: 10, y: 95, size: 0.3,
+  link: 'kick-level',
+  value: 6,valueX: -4, valueY: -3
+})
+
+let snareLevel = gui.Knob({
+  label: 'snare level', labelX: -4,labelY:-3,
+  mapto:'snarePlayer.volume',
+  min: -12, max: 18, curve: 1, size: .5,
+  x: 10, y: 90, size: 0.3,
+  link: 'snare-level',
+  value:6, valueX: -4, valueY: -3
+})
+
+
 
 let isTransportRunning = true // opposite because will be flipped on initiation callback 
 let toggleButton = gui.Toggle({
   label:'On/Off \n ( ] )',
   callback:  x=>{ x > 0 ? isTransportRunning = 1 : isTransportRunning = 0},
-//   function toggleTransport() {
-//   if (isTransportRunning) {
-//     Tone.Transport.stop();
-//     console.log('stopped transport')
-//   } else {
-//     Tone.Transport.start();
-//     console.log('started transport')
-//     for( let i=0; i<pitches.length; i++) enable_toggles[i].set(1)
-//   }
-//   isTransportRunning = !isTransportRunning;
-// },
   x: 50, y:55, size: 0.5,
   link: 'on-off',
+  value: 1, accentColor :[247, 5, 5]
+})
+
+let isDrumRunning
+let drumToggleButton = gui.Toggle({
+  label:'Drum \nEnable \n ( \; )', //labelY: -5,
+  callback:  x=>{ x > 0 ? isDrumRunning = 1 : isDrumRunning = 0},
+  x: 85, y:90, size: 0.5,
+  link: 'drum-off',
   value: 1
 })
 
@@ -544,7 +588,7 @@ let tempoKnob = gui.Knob({
     },
   x: 78, y: 55,
   min:30, max:250, curve: 1, size: 0.3,
-  link: 'tempo'
+  link: 'tempo', accentColor : [46,152,99]
 })
 let lengthKnob = gui.Knob({
   label: 'Note Length',
@@ -554,44 +598,44 @@ let lengthKnob = gui.Knob({
   },
   min: 0.01, max: .9, curve: 1.2, size: 1,
   x: 22, y: 55, size: 0.3,
-  link: 'note-length'
+  link: 'note-length', accentColor :[247, 5, 5]
 })
 
 let transposeAdd = gui.Button({
   label: '+',
   callback: function() {
     transpose += 1
-    transposeSubtract.label = 'Sub / ' + transpose.toString()
-    transposeAdd.label = 'Add / ' + transpose.toString()
+    transposeSubtract.label = 'Sub / ' + transpose.toString() + '\n (-)'
+    transposeAdd.label = 'Add / ' + transpose.toString() + '\n (+)'
   },
   x: 88, y: 70, size: 0.6,
-  link: 'transpose+'
+  link: 'transpose+', accentColor :[247, 5, 5]
 })
 
 let transposeSubtract = gui.Button({
   label: '-',
   callback: function subtractnote(){
     transpose -= 1
-    transposeSubtract.label = 'Sub / ' + transpose.toString()
-    transposeAdd.label = 'Add / ' + transpose.toString()
+    transposeSubtract.label = 'Sub / ' + transpose.toString() + '\n (-)'
+    transposeAdd.label = 'Add / ' + transpose.toString() + '\n (+)'
   },
   x: 12, y: 70, size: 0.6,
-  link: 'transpose-'
+  link: 'transpose-', accentColor :[247, 5, 5]
 })
 
 let resetTranspose = gui.Momentary({
-  label: 'reset',
+  label: 'reset \n (0)',
   callback: function subtractnote(){
     transpose  = 0
-    transposeSubtract.label = 'Sub / ' + transpose.toString()
-    transposeAdd.label = 'Add / ' + transpose.toString()
+    transposeSubtract.label = 'Sub / ' + transpose.toString() + '\n (-)'
+    transposeAdd.label = 'Add / ' + transpose.toString() + '\n (+)'
   },
-  x: 6, y: 70, size: 0.3,
-  link: 'reset'
+  x: 6, y: 70, size: 0.5,
+  link: 'reset', accentColor :[247, 5, 5]
 })
 
 
-let booster = gui.Momentary({
+let booster = gui.Toggle({
   label: 'Boost \n( \\ )',
   callback: x=>{ x > 0 ? isBoost = 1 : isBoost = 0},
   // function boosted(){
@@ -604,7 +648,7 @@ let booster = gui.Momentary({
   // },
   x: 70, y: 59, size: 0.8,
   link: 'boost',
-  textSize: 1.5
+  textSize: 1.5, accentColor : [46,152,99]
 })
 booster.set(0)
 
@@ -612,11 +656,11 @@ let rand = gui.Toggle({
   label: 'Random \n ( [ )',
   callback: function(x){
   isRandom = x > 0 ? true : false
-  console.log(isRandom)
+  //console.log(isRandom)
   },
   x: 30, y:59, size: 0.8,
   link: 'random',
-  textSize: 1.5
+  textSize: 1.5, accentColor :[247, 5, 5]
 })
 isRandom = false
 
@@ -790,6 +834,10 @@ function saveCallback() {
       };
     }
   }
+  savedData['transpose'] = {
+        type: 'transpose',
+        value: transpose
+      };
   console.log('Data saved:', savedData);
 }
 
@@ -798,8 +846,10 @@ function recallCallback() {
     if (gui.elements.hasOwnProperty(key)) {
       const element = gui.elements[key];
       if (savedData.hasOwnProperty(element.id)) {
-        if(savedData[element.id].type !== 'momentary')
-        element.set ( savedData[element.id].value );
+        if(savedData[element.id].type !== 'momentary'){
+          if(savedData[element.id].type === 'transpose') transpose = savedData[element.id].value
+          else element.set ( savedData[element.id].value );
+    }
       }
     }
   }

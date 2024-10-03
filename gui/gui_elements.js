@@ -1,5 +1,7 @@
 // This file loads the JSON data and defines p5 functions
-(function(global) {
+(
+
+    function(global) {
 
     let activeTheme = p5Themes.themes['default']; // Default theme preset
 
@@ -32,11 +34,11 @@ p5.prototype.listThemes = function() {
 }
 
 p5.prototype.setTheme = function(themeName) {
-    if (!themes.themes[themeName]) {
+    if (!p5Themes.themes[themeName]) {
         console.error(`Theme '${themeName}' not found.`);
         return;
   } 
-    activeTheme = themes.themes[themeName]; // Default theme preset
+    activeTheme = p5Themes.themes[themeName]; // Default theme preset
 }
 
 // Function to update theme parameters
@@ -44,6 +46,7 @@ p5.prototype.setThemeParameters = function(parameters) {
   if (activeTheme) {
     // Merge the provided parameters with the active theme
     activeTheme = { ...activeTheme, ...parameters };
+    console.log(activeTheme)
   } else {
     console.error(`Active theme '${activeTheme}' not found.`);
   }
@@ -106,6 +109,7 @@ const unScaleOutput = function (input, outLow, outHigh, inLow, inHigh, curve) {
 
 /********************** COLORS & FONTS ***********************/
 const setColor = function(name, value) {
+    console.log(name,value)
     if( name === 'border' ) activeTheme.borderColor = value
     else if( name === 'accent' )  activeTheme.accentColor = value
     else if( name === 'background' )  activeTheme.backgroundColor = value
@@ -119,6 +123,9 @@ const setColor = function(name, value) {
     }
     else console.error(`incorrect color values: ${name}, ${value} `)
 }
+p5.prototype.setColor = function () {
+    setColor(this);
+};
 
 const getColor = function(name) {
     if( name === 'border' ) return activeTheme.borderColor
@@ -177,7 +184,7 @@ class Element {
     constructor(p, options) {
         this.p = p;
         this.ch = window.ch;
-        this.typee = 'default';
+        this.type = 'default';
         this.theme = activeTheme;
         this.label = options.label || "myElement";
         this.id = this.label;
@@ -866,7 +873,7 @@ callback: function(val){ vco.type = val }`)
 class Momentary extends Button {
     constructor(p, options) {
         super(p, options);
-        this.typee = 'momentary';
+        this.type = 'momentary';
         this.value = options.value || 0
         this.rawValue = this.value
     }
