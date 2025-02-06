@@ -141,7 +141,7 @@ let distortion_toggle =  gui.Knob({
     dist.wet.value = x
   },
   x: 85, y:10, size: 0.8,
-  link: 'dist', value: 0
+  link: 'dist', value: 0.1
 })
 distortion_toggle.accentColor = [46,152,99]
 
@@ -288,19 +288,20 @@ speaker_knob.set( 0.05 )
 //sampler - beatpads
 
 kick = "audio/drums-003.mp3"
-    snare = "audio/snare.mp3"
+snare = "audio/snare.mp3"
+    
     //this.kickPlayer = new Tone.Player(this.kick).toDestination()
     kickPlayer = new Tone.Sampler({
       urls: {
         C4: "drums-003.mp3"
       },
-      baseUrl: "/dataduo/audio/"
+      baseUrl: "/dataDuo/audio/"
     })
     snarePlayer = new Tone.Sampler({
       urls: {
         C4: "snare.mp3"
       },
-      baseUrl: "/dataduo/audio/"
+      baseUrl: "/dataDuo/audio/"
     })
     //this.snarePlayer = new Tone.Player(this.snare).toDestination()
     // kickPlayer.volume.value = -16
@@ -334,8 +335,8 @@ kick = "audio/drums-003.mp3"
     kick_trigger = gui.Button({
       label:'kick \n ( . )',
       callback: ()=>{ 
-        kickPlayer.triggerAttack( 'C4')
-         ch.event('kick')
+        //kickPlayer.triggerAttack( 'C4')
+         //ch.event('kick')
       },
       size: 1, border: 20,
       x:30, y:40, size: 1,
@@ -348,8 +349,8 @@ kick = "audio/drums-003.mp3"
     snare_trigger = gui.Button({
       label:'snare \n ( / )',
       callback: ()=>{ 
-        snarePlayer.triggerAttack( 'C4')
-         ch.event('snare')
+        //snarePlayer.triggerAttack( 'C4')
+         //ch.event('snare')
       },
       size: 1, border: 20,
       x:70, y:40, size: 1,
@@ -386,28 +387,28 @@ const sequence = new Tone.Sequence( (time, note) => {
   //update index
   clock = clock+1 
 
-  //trigger drums
-  if( clock % 2 == 0 && isDrumRunning == true){
-    if( kick_enable[Math.floor(clock/2)%8]){
-      try {kickPlayer.triggerAttack( 'C4', time)}
-      catch{}
-    }
-    if(snare_enable[Math.floor(clock/2)%8]){
-      try {snarePlayer.triggerAttack( 'C4', time)}
-      catch{}
-    }
-  }
-
   //if boost isn't activated only run on even clocks
   if (isBoost == 0 && clock%2 > 0) {
     return
   }
-  
+
   //update index and get pitch
   if ( isBoost == 0 ) {
     index = Math.floor( clock/2 ) % pitches.length
   } else {
     index = clock % pitches.length
+  }
+
+  //trigger drums
+  if( isDrumRunning == true){
+    if( kick_enable[Math.floor(index)%8]){
+      try {kickPlayer.triggerAttack( 'C4', time)}
+      catch{}
+    }
+    if(snare_enable[Math.floor(index)%8]){
+      try {snarePlayer.triggerAttack( 'C4', time)}
+      catch{}
+    }
   }
 
   //calculate freq for note
@@ -443,7 +444,7 @@ for( let i=0;i<pitches.length;i++){
     callback: function(x){
       pitches[i]= scaleToMidi(Math.floor(x))
     },
-    min:0.01,max:12, value:Math.random()*12,
+    min:0.01,max:12, value:0,
     size: 1, border: 10, x: 20 + i*fader_spacing, y: 67,
     link: 'seq' + i, accentColor :[247, 5, 5]
     // link: (x) => {ch.control('pitches', pitches)}
@@ -821,10 +822,10 @@ function printValues(){
 //   }
 // })
 
-let savedData = {}; // This will hold the saved values
+//let savedData = {}; // This will hold the saved values
 
 function saveCallback() {
-  savedData = {}; // Clear previous saved data
+  let savedData = {}; // Clear previous saved data
   for (let key in gui.elements) {
     if (gui.elements.hasOwnProperty(key)) {
       const element = gui.elements[key];
@@ -838,10 +839,18 @@ function saveCallback() {
         type: 'transpose',
         value: transpose
       };
+
+  // Store data in localStorage
+  localStorage.setItem('savedGuiData', JSON.stringify(savedData));
+
   console.log('Data saved:', savedData);
 }
 
 function recallCallback() {
+  let storedData = localStorage.getItem('savedGuiData');
+  //console.log(savedData)
+  let savedData = JSON.parse(storedData);
+  //return
   for (let key in gui.elements) {
     if (gui.elements.hasOwnProperty(key)) {
       const element = gui.elements[key];
